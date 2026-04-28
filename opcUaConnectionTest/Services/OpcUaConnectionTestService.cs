@@ -26,7 +26,7 @@ namespace opcUaConnectionTest.Services
             var responseBaseNode = opcServerConfiguration.CobotProgramResponseBaseNodeId ?? throw new InvalidOperationException("Cobot program response base node ID is null.");
             string serverName = opcServerConfiguration.Name;
 
-            _logger.LogInformation($"Vehicle ID: {opcServerConfiguration.IntegrationVehicleId}.");
+            Console.WriteLine($"Vehicle ID: {opcServerConfiguration.IntegrationVehicleId}.");
 
             int ReadAttempt = 0;
             DataValue? opcUaDataValue;
@@ -35,12 +35,12 @@ namespace opcUaConnectionTest.Services
             {
                 // Read current state
                 // Try a few times before throwing exception
-                while (ReadAttempt < 5)
+                while (ReadAttempt < 3)
                 {
 
                     // TODO: For debugging purposes only.
                     opcUaDataValue = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{responseBaseNode}");
-                    _logger.LogInformation(DumpDataValue(opcUaDataValue));
+                    Console.WriteLine(DumpDataValue(opcUaDataValue));
 
                     // throttle
                     await Task.Delay(2000);
@@ -49,7 +49,7 @@ namespace opcUaConnectionTest.Services
             }
             catch (Exception ex)
             {
-                _logger.LogInformation ($"Error reading OPC UA node: {ex}");
+                Console.WriteLine ($"Error reading OPC UA node: {ex}");
             }
         }
 
@@ -60,7 +60,7 @@ namespace opcUaConnectionTest.Services
             var responseBaseNode = opcServerConfiguration.CobotProgramResponseBaseNodeId ?? throw new InvalidOperationException("Cobot program response base node ID is null.");
             string serverName = opcServerConfiguration.Name;
 
-            _logger.LogInformation($"Vehicle ID: {opcServerConfiguration.IntegrationVehicleId}.");
+            Console.WriteLine($"Vehicle ID: {opcServerConfiguration.IntegrationVehicleId}.");
 
             int ReadAttempt = 0;
             DataValue? opcUaDataValue;
@@ -69,12 +69,12 @@ namespace opcUaConnectionTest.Services
             {
                 // Read current state
                 // Try a few times before throwing exception
-                while (ReadAttempt < 5)
+                while (ReadAttempt < 3)
                 {
 
                     // TODO: For debugging purposes only.
                     opcUaDataValue = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{responseBaseNode}");
-                    _logger.LogInformation(DumpDataValue(opcUaDataValue));
+                    Console.WriteLine(DumpDataValue(opcUaDataValue));
 
                     // throttle
                     await Task.Delay(2000);
@@ -83,7 +83,7 @@ namespace opcUaConnectionTest.Services
             }
             catch (Exception ex)
             {
-                _logger.LogInformation($"Error reading OPC UA node: {ex}");
+                Console.WriteLine($"Error reading OPC UA node: {ex}");
             }
         }
 
