@@ -49,6 +49,7 @@ namespace opcUaConnectionTest.OPC
         }
 
         #endregion Nested Types
+
         private static readonly TimeSpan DefaultSessionTimeout = TimeSpan.FromMinutes(1);
         private const int DefaultDiscoverTimeoutMs = 15_000;
 
@@ -62,24 +63,12 @@ namespace opcUaConnectionTest.OPC
 
         private ApplicationConfiguration? applicationConfiguration;
 
-        public OpcUaConnectionManager(
-            IOptions<OpcUaApplication> options,
-            ILogger<OpcUaConnectionManager> logger,
-            ILoggerFactory loggerFactory)
-            : this(options, logger, loggerFactory, connectServerAsync: null)
+        public OpcUaConnectionManager(OpcUaApplication options, ILogger<OpcUaConnectionManager> logger, ILoggerFactory loggerFactory)
         {
-        }
-
-        internal OpcUaConnectionManager(
-            IOptions<OpcUaApplication> options,
-            ILogger<OpcUaConnectionManager> logger,
-            ILoggerFactory loggerFactory,
-            Func<OpcUaServer, CancellationToken, Task>? connectServerAsync)
-        {
-            opcUaApplication = options.Value;
+            opcUaApplication = options;
             this.logger = logger;
             telemetryContext = new LoggerFactoryTelemetryContext(loggerFactory);
-            this.connectServerAsync = connectServerAsync ?? ConnectToServerAsync;
+            this.connectServerAsync = ConnectToServerAsync;
         }
 
         public async Task InitializeAsync(CancellationToken cancellationToken = default)
