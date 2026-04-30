@@ -128,10 +128,10 @@ namespace opcUaConnectionTest.OPC
                 try
                 {
                     // Read OPC UA nodes
-                    opcUaResponseData = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{responseBaseNode}");
-                    Console.WriteLine($"Wall-e response node data: {DumpDataValue(opcUaResponseData)}");
                     opcUaRequestData = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{requestBaseNode}");
                     Console.WriteLine($"Wall-e request node data: {DumpDataValue(opcUaRequestData)}");
+                    opcUaResponseData = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{responseBaseNode}");
+                    Console.WriteLine($"Wall-e response node data: {DumpDataValue(opcUaResponseData)}");
                     break;
                 }
 
@@ -169,14 +169,14 @@ namespace opcUaConnectionTest.OPC
                 try
                 {
                     // Read OPC UA nodes
-                    opcUaDataCobotResponse = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{CobotResponseBaseNode}");
-                    Console.WriteLine($"EVE Cobot Response data: {DumpDataValue(opcUaDataCobotResponse)}");
                     opcUaDataCobotRequest = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{CobotRequestBaseNode}");
                     Console.WriteLine($"EVE Cobot Request data: {DumpDataValue(opcUaDataCobotRequest)}");
-                    opcUaDataTowerResponse = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{TowerResponseBaseNode}");
-                    Console.WriteLine($"EVE Tower Response data: {DumpDataValue(opcUaDataTowerResponse)}");
+                    opcUaDataCobotResponse = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{CobotResponseBaseNode}");
+                    Console.WriteLine($"EVE Cobot Response data: {DumpDataValue(opcUaDataCobotResponse)}");
                     opcUaDataTowerRequest = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{TowerRequestBaseNode}");
                     Console.WriteLine($"EVE Tower Request data: {DumpDataValue(opcUaDataTowerRequest)}");
+                    opcUaDataTowerResponse = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{TowerResponseBaseNode}");
+                    Console.WriteLine($"EVE Tower Response data: {DumpDataValue(opcUaDataTowerResponse)}");
                     break;
                 }
 
