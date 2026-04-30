@@ -4,6 +4,7 @@ using Opc.Ua;
 using System.Text;
 
 using opcUaConnectionTest.DataTransferObjects;
+using PG.LIFT.Integrations.EMMS.DataTransferObjects;
 
 namespace opcUaConnectionTest.OPC
 {
@@ -64,7 +65,7 @@ namespace opcUaConnectionTest.OPC
                 }
             }
 
-            await ExecuteWallECobotProgram(cancellationToken);
+            await OpcUaConnectionTestWallE(cancellationToken);
             await OpcUaConnectionTestEVE(cancellationToken);
         }
 
@@ -107,23 +108,108 @@ namespace opcUaConnectionTest.OPC
             return sb.ToString();
         }
 
-        public async Task ExecuteWallECobotProgram(CancellationToken cancellationToken = default)
+        public async Task OpcUaConnectionTestWallE(CancellationToken cancellationToken = default)
         {
-            // TODO: Replace these values with meaningful test values.
-            var request = new WallECobotProgramRequestDto
-            {
-                IntegrationVehicleId = "M5_WALL-E",
-                CoreWeight = 12.5f,
-                CoreDiameter = 5.0f,
-                Strategy = 1
-            };
-
             var opcServerConfiguration = OpcUaApplication.Servers.FirstOrDefault(server => server.IntegrationVehicleId.Equals("M5_WALL-E")) ?? throw new Exception("OPC Server configuration for 'M5_WALL-E' not found.");
             var requestBaseNode = opcServerConfiguration.CobotProgramRequestBaseNodeId ?? throw new InvalidOperationException("Cobot program request base node ID is null.");
             var responseBaseNode = opcServerConfiguration.CobotProgramResponseBaseNodeId ?? throw new InvalidOperationException("Cobot program response base node ID is null.");
             string serverName = opcServerConfiguration.Name;
 
-            _logger.LogInformation($"Vehicle ID: {opcServerConfiguration.IntegrationVehicleId}.");
+            Console.WriteLine($"Vehicle ID: {opcServerConfiguration.IntegrationVehicleId}.");
+
+            int ReadAttempt = 0;
+            DataValue? opcUaResponseData;
+            DataValue? opcUaRequestData;
+
+            // Read current state
+            // Try a few times before exit
+            while (ReadAttempt < 3)
+            {
+                try
+                {
+                    // Read OPC UA nodes
+                    opcUaResponseData = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{responseBaseNode}");
+                    Console.WriteLine($"Wall-e response node data: {DumpDataValue(opcUaResponseData)}");
+                    opcUaRequestData = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{requestBaseNode}");
+                    Console.WriteLine($"Wall-e request node data: {DumpDataValue(opcUaRequestData)}");
+                    break;
+                }
+
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error reading OPC UA node: {ex}");
+                    // throttle
+                    await Task.Delay(2000);
+                    ReadAttempt++;
+                }
+            }
+        }
+
+        public async Task OpcUaConnectionTestEVE(CancellationToken cancellationToken = default)
+        {
+            var opcServerConfiguration = OpcUaApplication.Servers.FirstOrDefault(server => server.IntegrationVehicleId == "EVE_Gen2_000001") ?? throw new Exception("OPC Server configuration for EVE not found.");
+            var CobotRequestBaseNode = opcServerConfiguration.CobotProgramRequestBaseNodeId ?? throw new InvalidOperationException("Cobot program request base node ID is null.");
+            var CobotResponseBaseNode = opcServerConfiguration.CobotProgramResponseBaseNodeId ?? throw new InvalidOperationException("Cobot program response base node ID is null.");
+            var TowerRequestBaseNode = opcServerConfiguration.TowerProgramRequestBaseNodeId ?? throw new InvalidOperationException("Tower program request base node ID is null.");
+            var TowerResponseBaseNode = opcServerConfiguration.TowerProgramResponseBaseNodeId ?? throw new InvalidOperationException("Tower program response base node ID is null.");
+            string serverName = opcServerConfiguration.Name;
+
+            Console.WriteLine($"Vehicle ID: {opcServerConfiguration.IntegrationVehicleId}.");
+
+            int ReadAttempt = 0;
+            DataValue? opcUaDataCobotResponse;
+            DataValue? opcUaDataCobotRequest;
+            DataValue? opcUaDataTowerResponse;
+            DataValue? opcUaDataTowerRequest;
+
+            // Read current state
+            // Try a few times before exit
+            while (ReadAttempt < 3)
+            {
+                try
+                {
+                    // Read OPC UA nodes
+                    opcUaDataCobotResponse = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{CobotResponseBaseNode}");
+                    Console.WriteLine($"EVE Cobot Response data: {DumpDataValue(opcUaDataCobotResponse)}");
+                    opcUaDataCobotRequest = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{CobotRequestBaseNode}");
+                    Console.WriteLine($"EVE Cobot Request data: {DumpDataValue(opcUaDataCobotRequest)}");
+                    opcUaDataTowerResponse = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{TowerResponseBaseNode}");
+                    Console.WriteLine($"EVE Tower Response data: {DumpDataValue(opcUaDataTowerResponse)}");
+                    opcUaDataTowerRequest = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{TowerRequestBaseNode}");
+                    Console.WriteLine($"EVE Tower Request data: {DumpDataValue(opcUaDataTowerRequest)}");
+                    break;
+                }
+
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error reading OPC UA node: {ex}");
+                    // throttle
+                    await Task.Delay(2000);
+                    ReadAttempt++;
+                }
+            }
+        }
+
+        protected async Task ExecuteFanucCobotProgram(CancellationToken cancellationToken = default)
+        {
+            // TODO: Replace these values with meaningful test values.
+            var request = new FanucCobotProgramRequestDto
+            {
+                IntegrationVehicleId = "EVE_Gen2_000001",
+                // Int Parameter
+                Station = 14,
+                Task = 310,
+                TransferPoint = 1,
+                // Float Parameter
+                CoreWeight = 0.75f,
+                CoreDiameter = 100f,
+                Strategy = 1
+            };
+
+            var opcServerConfiguration = OpcUaApplication.Servers.FirstOrDefault(server => server.IntegrationVehicleId == request.IntegrationVehicleId) ?? throw new Exception("OPC Server configuration for 'EVE_Gen2_000001' not found.");
+            var requestBaseNode = opcServerConfiguration.CobotProgramRequestBaseNodeId ?? throw new InvalidOperationException("Cobot program request base node ID is null.");
+            var responseBaseNode = opcServerConfiguration.CobotProgramResponseBaseNodeId ?? throw new InvalidOperationException("Cobot program response base node ID is null.");
+            string serverName = opcServerConfiguration.Name;
 
             const int errorStatus = 0;
             const int readyStatus = 1;
@@ -141,22 +227,14 @@ namespace opcUaConnectionTest.OPC
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    statusDataValue = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{responseBaseNode}");
-                    _logger.LogInformation(DumpDataValue(statusDataValue));
-
-                    // errorDataValue = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{responseBaseNode}.Error");
-                    // int? initialStatus = statusDataValue != null ? OpcInteraction.TryConvertToInt32(statusDataValue) : null;
-                    // int? initialError = errorDataValue != null ? OpcInteraction.TryConvertToInt16(errorDataValue) : null;
-
-                    int? initialStatus = null;
-                    int? initialError = null;
+                    statusDataValue = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{responseBaseNode}/Status");
+                    errorDataValue = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{responseBaseNode}/Error");
+                    int? initialStatus = statusDataValue != null ? OpcInteraction.TryConvertToInt32(statusDataValue) : null;
+                    int? initialError = errorDataValue != null ? OpcInteraction.TryConvertToInt16(errorDataValue) : null;
 
                     // Assert readiness
                     if (initialStatus.HasValue && initialError.HasValue && initialStatus.Value == readyStatus && initialError.Value == 0)
-                    {
-                        _logger.LogInformation($"Status: {initialStatus}, Error: {initialError}.");
                         break;
-                    }
 
                     else
                     {
@@ -173,18 +251,15 @@ namespace opcUaConnectionTest.OPC
                     await Task.Delay(1000, cancellationToken);
                 }
 
-                // TODO: Writes and OPC program execution commented out until reads are confirmed working.
-
-                /*
                 // Write request parameters
-                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}.Strategy", request.Strategy, cancellationToken);
-                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}.RobSkillParametersInts", request.GetIntArray(), cancellationToken);
-                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}.RobSkillParametersFloats", request.GetFloatArray(), cancellationToken);
-                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}.RobSkillParametersBools", request.GetBoolArray(), cancellationToken);
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/Strategy", request.Strategy, cancellationToken);
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/RobSkillParametersInts", request.GetIntArray(), cancellationToken);
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/RobSkillParametersFloats", request.GetFloatArray(), cancellationToken);
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/RobSkillParametersBools", request.GetBoolArray(), cancellationToken);
 
                 // Trigger execution by providing a lead edge to Exec bit
-                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}.Exec", false, cancellationToken);
-                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}.Exec", true, cancellationToken);
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/Exec", false, cancellationToken);
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/Exec", true, cancellationToken);
 
                 // Monitor execution via response nodes until done or error
                 int? statusValue;
@@ -197,8 +272,8 @@ namespace opcUaConnectionTest.OPC
 
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    statusDataValue = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{responseBaseNode}.Status");
-                    errorDataValue = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{responseBaseNode}.Error");
+                    statusDataValue = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{responseBaseNode}/Status");
+                    errorDataValue = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{responseBaseNode}/Error");
 
                     statusValue = statusDataValue != null ? OpcInteraction.TryConvertToInt32(statusDataValue) : null;
                     errorValue = errorDataValue != null ? OpcInteraction.TryConvertToInt16(errorDataValue) : null;
@@ -230,16 +305,13 @@ namespace opcUaConnectionTest.OPC
                     // Throttle
                     await Task.Delay(1000, cancellationToken);
                 }
-                */
             }
 
-            catch (Exception ex)
+            catch
             {
-                _logger.LogError(ex, "Error during OPC UA interaction.");
+                throw;
             }
 
-            // TODO: Writes commented out until reads are confirmed working.
-            /*
             finally
             {
                 // Reset execution trigger bit
@@ -249,39 +321,273 @@ namespace opcUaConnectionTest.OPC
                 await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{responseBaseNode}/Error", 0, cancellationToken);
                 await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{responseBaseNode}/Status", readyStatus, cancellationToken);
             }
-            */
         }
 
-        public async Task OpcUaConnectionTestEVE(CancellationToken cancellationToken = default)
+        protected async Task ExecuteWallECobotProgram(CancellationToken cancellationToken = default)
         {
-            var opcServerConfiguration = OpcUaApplication.Servers.FirstOrDefault(server => server.IntegrationVehicleId == "EVE_Gen2_000001") ?? throw new Exception("OPC Server configuration for EVE not found.");
+            // TODO: Replace these values with meaningful test values.
+            var request = new WallECobotProgramRequestDto
+            {
+                IntegrationVehicleId = "M5_WALL-E",
+                // Int Parameter
+                Task = 20,
+                // Float Parameter
+                CoreWeight = 0.75f,
+                CoreDiameter = 100f,
+                Strategy = 1
+            };
+
+            var opcServerConfiguration = OpcUaApplication.Servers.FirstOrDefault(server => server.IntegrationVehicleId == request.IntegrationVehicleId) ?? throw new Exception("OPC Server configuration for 'M5_WALL-E' not found.");
             var requestBaseNode = opcServerConfiguration.CobotProgramRequestBaseNodeId ?? throw new InvalidOperationException("Cobot program request base node ID is null.");
             var responseBaseNode = opcServerConfiguration.CobotProgramResponseBaseNodeId ?? throw new InvalidOperationException("Cobot program response base node ID is null.");
             string serverName = opcServerConfiguration.Name;
 
-            Console.WriteLine($"Vehicle ID: {opcServerConfiguration.IntegrationVehicleId}.");
-
-            int ReadAttempt = 0;
-            DataValue? opcUaDataValue;
+            const int errorStatus = 0;
+            const int readyStatus = 1;
+            const int activeStatus = 2;
+            const int doneStatus = 3;
+            int failedReadAttempt = 0;
+            DataValue? statusDataValue;
+            DataValue? errorDataValue;
 
             try
             {
                 // Read current state
                 // Try a few times before throwing exception
-                while (ReadAttempt < 3)
+                while (!cancellationToken.IsCancellationRequested)
                 {
-                    // TODO: For debugging purposes only.
-                    opcUaDataValue = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{responseBaseNode}");
-                    Console.WriteLine(DumpDataValue(opcUaDataValue));
+                    cancellationToken.ThrowIfCancellationRequested();
 
+                    statusDataValue = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{responseBaseNode}/Status");
+                    errorDataValue = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{responseBaseNode}/Error");
+                    int? initialStatus = statusDataValue != null ? OpcInteraction.TryConvertToInt32(statusDataValue) : null;
+                    int? initialError = errorDataValue != null ? OpcInteraction.TryConvertToInt16(errorDataValue) : null;
+
+                    // Assert readiness
+                    if (initialStatus.HasValue && initialError.HasValue && initialStatus.Value == readyStatus && initialError.Value == 0)
+                        break;
+
+                    else
+                    {
+                        if (failedReadAttempt >= 3)
+                        {
+                            if (!initialStatus.HasValue || !initialError.HasValue) throw new Exception("Failed to read cobot response state.");
+                            else if (initialStatus.Value != readyStatus) throw new Exception($"Cobot not ready. Current status: {initialStatus.Value}.");
+                            else if (initialError.Value != 0) throw new Exception($"Cobot reported error before execution. Error code: {initialError.Value}.");
+                            else throw new Exception("Unknown error.");
+                        }
+                        else failedReadAttempt++;
+                    }
                     // throttle
-                    await Task.Delay(2000);
-                    ReadAttempt++;
+                    await Task.Delay(1000, cancellationToken);
+                }
+
+                // Write request parameters
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/Strategy", request.Strategy, cancellationToken);
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/RobSkillParametersInts", request.GetIntArray(), cancellationToken);
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/RobSkillParametersFloats", request.GetFloatArray(), cancellationToken);
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/RobSkillParametersBools", request.GetBoolArray(), cancellationToken);
+
+                // Trigger execution by providing a lead edge to Exec bit
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/Exec", false, cancellationToken);
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/Exec", true, cancellationToken);
+
+                // Monitor execution via response nodes until done or error
+                int? statusValue;
+                int? errorValue;
+                bool operationStarted = false;
+                failedReadAttempt = 0;
+
+                while (!cancellationToken.IsCancellationRequested)
+                {
+
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    statusDataValue = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{responseBaseNode}/Status");
+                    errorDataValue = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{responseBaseNode}/Error");
+
+                    statusValue = statusDataValue != null ? OpcInteraction.TryConvertToInt32(statusDataValue) : null;
+                    errorValue = errorDataValue != null ? OpcInteraction.TryConvertToInt16(errorDataValue) : null;
+
+                    if (statusValue.HasValue && errorValue.HasValue)
+                    {
+                        failedReadAttempt = 0;
+                        if (statusValue == doneStatus) break;
+                        else if (statusValue == errorStatus) throw new Exception($"Cobot execution error: {errorValue}");
+                        else if (statusValue == activeStatus)
+                        {
+                            operationStarted = true;
+                        }
+                        else if (statusValue == readyStatus)
+                        {
+                            if (operationStarted) throw new Exception("Unexpected Cobot status: Cobot returns to Ready status during operation");
+                            else { }
+                        }
+                        else throw new Exception($"Unknown Cobot status: {statusValue}");
+
+                    }
+
+                    else
+                    {
+                        if (failedReadAttempt >= 3) throw new Exception("Failed reading cobot response state.");
+                        else failedReadAttempt++;
+                    }
+
+                    // Throttle
+                    await Task.Delay(1000, cancellationToken);
+                }
+
+            }
+
+            catch
+            {
+                throw;
+            }
+
+            finally
+            {
+                // Reset execution trigger bit
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/Exec", false, cancellationToken);
+
+                // Reset state to be ready for next execution
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{responseBaseNode}/Error", 0, cancellationToken);
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{responseBaseNode}/Status", readyStatus, cancellationToken);
+            }
+        }
+
+        protected async Task ExecuteTowerProgram(CancellationToken cancellationToken = default)
+        {
+            // TODO: Replace these values with meaningful test values.
+            var request = new TowerProgramRequestDto
+            {
+                IntegrationVehicleId = "EVE_Gen2_000001",
+                // Int Parameters
+                Station = 14,
+                Task = 30,
+                TransferPoint = 3,
+                // Float Parameter
+                Weight = 10,
+                Depth = 90,
+                InnerDiameter = 200,
+                OuterDiameter = 1200
+            };
+
+            var opcServerConfiguration = OpcUaApplication.Servers.FirstOrDefault(server => server.IntegrationVehicleId == request.IntegrationVehicleId) ?? throw new Exception("OPC Server configuration for 'EVE_Gen2_000001' not found.");
+            var requestBaseNode = opcServerConfiguration.TowerProgramRequestBaseNodeId ?? throw new InvalidOperationException("Tower program request base node ID is null.");
+            var responseBaseNode = opcServerConfiguration.TowerProgramResponseBaseNodeId ?? throw new InvalidOperationException("Tower program response base node ID is null.");
+            string serverName = opcServerConfiguration.Name;
+
+            const int errorStatus = 0;
+            const int readyStatus = 1;
+            const int activeStatus = 2;
+            const int doneStatus = 3;
+            int failedReadAttempt = 0;
+            DataValue? statusDataValue;
+            DataValue? errorDataValue;
+
+            try
+            {
+                // Read current state
+                // Try a few times before throwing exception
+                while (!cancellationToken.IsCancellationRequested)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    statusDataValue = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{responseBaseNode}/Status");
+                    errorDataValue = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{responseBaseNode}/Error");
+                    int? initialStatus = statusDataValue != null ? OpcInteraction.TryConvertToInt32(statusDataValue) : null;
+                    int? initialError = errorDataValue != null ? OpcInteraction.TryConvertToInt16(errorDataValue) : null;
+
+                    // Assert readiness
+                    if (initialStatus.HasValue && initialError.HasValue && initialStatus.Value == readyStatus && initialError.Value == 0)
+                        break;
+
+                    else
+                    {
+                        if (failedReadAttempt >= 3)
+                        {
+                            if (!initialStatus.HasValue || !initialError.HasValue) throw new Exception("Failed to read tower response state.");
+                            else if (initialStatus.Value != readyStatus) throw new Exception($"Tower not ready. Current status: {initialStatus.Value}.");
+                            else if (initialError.Value != 0) throw new Exception($"Tower reported error before execution. Error code: {initialError.Value}.");
+                            else throw new Exception("Unknown error.");
+                        }
+                        else failedReadAttempt++;
+                    }
+                    // throttle
+                    await Task.Delay(1000, cancellationToken);
+                }
+
+                // Write request parameters
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/Depth", request.Depth, cancellationToken);
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/InnerDiameter", request.InnerDiameter, cancellationToken);
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/OuterDiameter", request.OuterDiameter, cancellationToken);
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/Station", request.Station, cancellationToken);
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/Task", request.Task, cancellationToken);
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/TransferPoint", request.TransferPoint, cancellationToken);
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/Weight", request.Weight, cancellationToken);
+
+                // Trigger execution by providing a lead edge to Exec bit
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/Exec", false, cancellationToken);
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/Exec", true, cancellationToken);
+
+                // Monitor execution via response nodes until done or error
+                int? statusValue;
+                int? errorValue;
+                bool operationStarted = false;
+                failedReadAttempt = 0;
+
+                while (!cancellationToken.IsCancellationRequested)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    statusDataValue = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{responseBaseNode}/Status");
+                    errorDataValue = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{responseBaseNode}/Error");
+
+                    statusValue = statusDataValue != null ? OpcInteraction.TryConvertToInt32(statusDataValue) : null;
+                    errorValue = errorDataValue != null ? OpcInteraction.TryConvertToInt16(errorDataValue) : null;
+
+                    if (statusValue.HasValue && errorValue.HasValue)
+                    {
+                        failedReadAttempt = 0;
+                        // check status value
+                        if (statusValue == doneStatus) break;
+                        else if (statusValue == errorStatus) throw new Exception($"Tower execution error: {errorValue}");
+                        else if (statusValue == activeStatus)
+                        {
+                            operationStarted = true;
+                        }
+                        else if (statusValue == readyStatus)
+                        {
+                            if (operationStarted) throw new Exception("Unexpected Tower status: Tower returns to Ready status during operation");
+                            else { }
+                        }
+                        else throw new Exception($"Unkown Tower status: {statusValue}");
+                    }
+
+                    else
+                    {
+                        if (failedReadAttempt >= 3) throw new Exception("Failed reading Tower response state.");
+                        else failedReadAttempt++;
+                    }
+
+                    // Throttle
+                    await Task.Delay(1000, cancellationToken);
                 }
             }
-            catch (Exception ex)
+
+            catch
             {
-                Console.WriteLine($"Error reading OPC UA node: {ex}");
+                throw;
+            }
+
+            finally
+            {
+                // Reset execution trigger bit
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/Exec", false, cancellationToken);
+
+                // Reset state to be ready for next execution
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{responseBaseNode}/Error", 0, cancellationToken);
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{responseBaseNode}/Status", readyStatus, cancellationToken);
             }
         }
 
