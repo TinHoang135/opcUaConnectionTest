@@ -1,8 +1,7 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System.Text;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Opc.Ua;
-using System.Text;
-
 using opcUaConnectionTest.DataTransferObjects;
 using PG.LIFT.Integrations.EMMS.DataTransferObjects;
 
@@ -111,15 +110,19 @@ namespace opcUaConnectionTest.OPC
         public async Task OpcUaConnectionTestWallE(CancellationToken cancellationToken = default)
         {
             var opcServerConfiguration = OpcUaApplication.Servers.FirstOrDefault(server => server.IntegrationVehicleId.Equals("M5_WALL-E")) ?? throw new Exception("OPC Server configuration for 'M5_WALL-E' not found.");
-            var requestBaseNode = opcServerConfiguration.CobotProgramRequestBaseNodeId ?? throw new InvalidOperationException("Cobot program request base node ID is null.");
-            var responseBaseNode = opcServerConfiguration.CobotProgramResponseBaseNodeId ?? throw new InvalidOperationException("Cobot program response base node ID is null.");
+            var progRequestBaseNode = opcServerConfiguration.CobotProgramRequestBaseNodeId ?? throw new InvalidOperationException("Cobot program request base node ID is null.");
+            var progResponseBaseNode = opcServerConfiguration.CobotProgramResponseBaseNodeId ?? throw new InvalidOperationException("Cobot program response base node ID is null.");
+            var ackRequestBaseNode = opcServerConfiguration.CobotAcknowledgeRequestBaseNodeId ?? throw new InvalidOperationException("Cobot ack request base node ID is null.");
+            var ackResponseBaseNode = opcServerConfiguration.CobotAcknowledgeResponseBaseNodeId ?? throw new InvalidOperationException("Cobot ack response base node ID is null.");
             string serverName = opcServerConfiguration.Name;
 
             Console.WriteLine($"Vehicle ID: {opcServerConfiguration.IntegrationVehicleId}.");
 
             int ReadAttempt = 0;
-            DataValue? opcUaResponseData;
-            DataValue? opcUaRequestData;
+            DataValue? opcUaProgResponseData;
+            DataValue? opcUaProgRequestData;
+            DataValue? opcUaAckResponseData;
+            DataValue? opcUaAckRequestData;
 
             // Read current state
             // Try a few times before exit
@@ -128,10 +131,14 @@ namespace opcUaConnectionTest.OPC
                 try
                 {
                     // Read OPC UA nodes
-                    opcUaRequestData = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{requestBaseNode}");
-                    Console.WriteLine($"Wall-e request node data: {DumpDataValue(opcUaRequestData)}");
-                    opcUaResponseData = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{responseBaseNode}");
-                    Console.WriteLine($"Wall-e response node data: {DumpDataValue(opcUaResponseData)}");
+                    opcUaProgRequestData = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{progRequestBaseNode}");
+                    Console.WriteLine($"Wall-e program request node data: {DumpDataValue(opcUaProgRequestData)}");
+                    opcUaProgResponseData = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{progResponseBaseNode}");
+                    Console.WriteLine($"Wall-e program response node data: {DumpDataValue(opcUaProgResponseData)}");
+                    opcUaAckRequestData = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{ackRequestBaseNode}");
+                    Console.WriteLine($"Wall-e ack request node data: {DumpDataValue(opcUaAckRequestData)}");
+                    opcUaAckResponseData = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{ackResponseBaseNode}");
+                    Console.WriteLine($"Wall-e response node data: {DumpDataValue(opcUaAckResponseData)}");
                     break;
                 }
 
@@ -148,8 +155,10 @@ namespace opcUaConnectionTest.OPC
         public async Task OpcUaConnectionTestEVE(CancellationToken cancellationToken = default)
         {
             var opcServerConfiguration = OpcUaApplication.Servers.FirstOrDefault(server => server.IntegrationVehicleId == "EVE_Gen2_000001") ?? throw new Exception("OPC Server configuration for EVE not found.");
-            var CobotRequestBaseNode = opcServerConfiguration.CobotProgramRequestBaseNodeId ?? throw new InvalidOperationException("Cobot program request base node ID is null.");
-            var CobotResponseBaseNode = opcServerConfiguration.CobotProgramResponseBaseNodeId ?? throw new InvalidOperationException("Cobot program response base node ID is null.");
+            var CobotProgRequestBaseNode = opcServerConfiguration.CobotProgramRequestBaseNodeId ?? throw new InvalidOperationException("Cobot program request base node ID is null.");
+            var CobotProgResponseBaseNode = opcServerConfiguration.CobotProgramResponseBaseNodeId ?? throw new InvalidOperationException("Cobot program response base node ID is null.");
+            var CobotAckRequestBaseNode = opcServerConfiguration.CobotAcknowledgeRequestBaseNodeId ?? throw new InvalidOperationException("Cobot program request base node ID is null.");
+            var CobotAckResponseBaseNode = opcServerConfiguration.CobotAcknowledgeResponseBaseNodeId ?? throw new InvalidOperationException("Cobot program response base node ID is null.");
             var TowerRequestBaseNode = opcServerConfiguration.TowerProgramRequestBaseNodeId ?? throw new InvalidOperationException("Tower program request base node ID is null.");
             var TowerResponseBaseNode = opcServerConfiguration.TowerProgramResponseBaseNodeId ?? throw new InvalidOperationException("Tower program response base node ID is null.");
             string serverName = opcServerConfiguration.Name;
@@ -157,8 +166,10 @@ namespace opcUaConnectionTest.OPC
             Console.WriteLine($"Vehicle ID: {opcServerConfiguration.IntegrationVehicleId}.");
 
             int ReadAttempt = 0;
-            DataValue? opcUaDataCobotResponse;
-            DataValue? opcUaDataCobotRequest;
+            DataValue? opcUaDataCobotProgResponse;
+            DataValue? opcUaDataCobotProgRequest;
+            DataValue? opcUaDataCobotAckResponse;
+            DataValue? opcUaDataCobotAckRequest;
             DataValue? opcUaDataTowerResponse;
             DataValue? opcUaDataTowerRequest;
 
@@ -169,10 +180,14 @@ namespace opcUaConnectionTest.OPC
                 try
                 {
                     // Read OPC UA nodes
-                    opcUaDataCobotRequest = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{CobotRequestBaseNode}");
-                    Console.WriteLine($"EVE Cobot Request data: {DumpDataValue(opcUaDataCobotRequest)}");
-                    opcUaDataCobotResponse = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{CobotResponseBaseNode}");
-                    Console.WriteLine($"EVE Cobot Response data: {DumpDataValue(opcUaDataCobotResponse)}");
+                    opcUaDataCobotProgRequest = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{CobotProgRequestBaseNode}");
+                    Console.WriteLine($"EVE Cobot Program Request data: {DumpDataValue(opcUaDataCobotProgRequest)}");
+                    opcUaDataCobotProgResponse = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{CobotProgResponseBaseNode}");
+                    Console.WriteLine($"EVE Cobot Program Response data: {DumpDataValue(opcUaDataCobotProgResponse)}");
+                    opcUaDataCobotAckRequest = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{CobotAckRequestBaseNode}");
+                    Console.WriteLine($"EVE Cobot Ack Request data: {DumpDataValue(opcUaDataCobotAckRequest)}");
+                    opcUaDataCobotAckResponse = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{CobotAckResponseBaseNode}");
+                    Console.WriteLine($"EVE Cobot Ack Response data: {DumpDataValue(opcUaDataCobotAckResponse)}");
                     opcUaDataTowerRequest = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{TowerRequestBaseNode}");
                     Console.WriteLine($"EVE Tower Request data: {DumpDataValue(opcUaDataTowerRequest)}");
                     opcUaDataTowerResponse = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{TowerResponseBaseNode}");
