@@ -140,17 +140,16 @@ namespace opcUaConnectionTest.OPC
                     // decode the data
                     if (opcUaProgResponseData.Value is ExtensionObject extensionObject)
                     {
-                        Console.WriteLine($"opcUaProgResponseData.Value is ExtensionObject extensionObject");
+                        Console.WriteLine($"ToString: {extensionObject.ToString()}, GetType:{extensionObject.GetType()}");
+                        Console.WriteLine($"Body: {extensionObject.Body}, GetType Of Body:{extensionObject.Body.GetType()}");
                         // Option 1: Direct cast if already decoded
-                        if (opcUaProgResponseData.Value is ResponseDto myData)
+                        if (extensionObject.Body is ResponseDto opcData)
                         {
-                            Console.WriteLine($"extensionObject.Body is ResponseDto myData");
-                            Console.WriteLine($"Status: {myData.Status}");
-                            Console.WriteLine($"Error: {myData.Error}");
+                            Console.WriteLine($"Status: {opcData.Status}");
+                            Console.WriteLine($"Error: {opcData.Error}");
                         }
                         else
                         {
-                            Console.WriteLine($"extensionObject.Body is not ResponseDto myData");
                             // Option 2: Manual decode
                             var decoded = ExtensionObject.ToEncodeable(extensionObject) as ResponseDto;
 
