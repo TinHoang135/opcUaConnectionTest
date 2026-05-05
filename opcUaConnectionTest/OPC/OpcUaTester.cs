@@ -157,7 +157,7 @@ namespace opcUaConnectionTest.OPC
             var opcServerConfiguration = OpcUaApplication.Servers.FirstOrDefault(server => server.IntegrationVehicleId == "EVE_Gen2_000001") ?? throw new Exception("OPC Server configuration for EVE not found.");
             var CobotProgRequestBaseNode = opcServerConfiguration.CobotProgramRequestBaseNodeId ?? throw new InvalidOperationException("Cobot program request base node ID is null.");
             var CobotProgResponseBaseNode = opcServerConfiguration.CobotProgramResponseBaseNodeId ?? throw new InvalidOperationException("Cobot program response base node ID is null.");
-            var CobotAckRequestBaseNode = opcServerConfiguration.CobotModeRequestBaseNodeId ?? throw new InvalidOperationException("Cobot program request base node ID is null.");
+            var CobotAckRequestBaseNode = opcServerConfiguration.CobotAcknowledgeRequestBaseNodeId ?? throw new InvalidOperationException("Cobot program request base node ID is null.");
             var CobotAckResponseBaseNode = opcServerConfiguration.CobotAcknowledgeResponseBaseNodeId ?? throw new InvalidOperationException("Cobot program response base node ID is null.");
             var TowerRequestBaseNode = opcServerConfiguration.TowerProgramRequestBaseNodeId ?? throw new InvalidOperationException("Tower program request base node ID is null.");
             var TowerResponseBaseNode = opcServerConfiguration.TowerProgramResponseBaseNodeId ?? throw new InvalidOperationException("Tower program response base node ID is null.");
