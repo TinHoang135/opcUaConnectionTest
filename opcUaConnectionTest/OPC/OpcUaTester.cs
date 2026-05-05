@@ -136,6 +136,7 @@ namespace opcUaConnectionTest.OPC
                     // Read OPC UA nodes
                     opcUaProgResponseData = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{progResponseBaseNode}");
                     Console.WriteLine($"Wall-e program response node data: {DumpDataValue(opcUaProgResponseData)}");
+                    
                     // decode the data
                     if (opcUaProgResponseData.Value is ExtensionObject extensionObject)
                     {
