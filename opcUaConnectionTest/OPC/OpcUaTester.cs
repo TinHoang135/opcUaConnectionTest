@@ -183,6 +183,7 @@ namespace opcUaConnectionTest.OPC
                         {
                             decoded = debugBytes.ToWallECobotProgramRequestDto("");
                             Console.WriteLine($"Exec: {decoded.Exec}");
+                            Console.WriteLine($"Task: {decoded.Task}");
                             Console.WriteLine($"Core Weight: {decoded.CoreWeight}");
                             Console.WriteLine($"Core Diameter: {decoded.CoreDiameter}");
                             Console.WriteLine($"Strategy: {decoded.Strategy}");
