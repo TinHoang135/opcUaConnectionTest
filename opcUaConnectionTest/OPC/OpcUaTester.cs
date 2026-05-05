@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 using Opc.Ua;
 using opcUaConnectionTest.DataTransferObjects;
 using PG.LIFT.Integrations.EMMS.DataTransferObjects;
@@ -65,7 +66,7 @@ namespace opcUaConnectionTest.OPC
             }
 
             await OpcUaConnectionTestWallE(cancellationToken);
-            await OpcUaConnectionTestEVE(cancellationToken);
+            // await OpcUaConnectionTestEVE(cancellationToken);
         }
 
         private static OpcUaApplication LoadOpcUaApplication()
@@ -120,9 +121,11 @@ namespace opcUaConnectionTest.OPC
 
             int ReadAttempt = 0;
             DataValue? opcUaProgResponseData;
+            /*
             DataValue? opcUaProgRequestData;
             DataValue? opcUaModeResponseData;
             DataValue? opcUaModeRequestData;
+            */
 
             // Read current state
             // Try a few times before exit
@@ -131,14 +134,37 @@ namespace opcUaConnectionTest.OPC
                 try
                 {
                     // Read OPC UA nodes
-                    opcUaProgRequestData = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{progRequestBaseNode}");
-                    Console.WriteLine($"Wall-e program request node data: {DumpDataValue(opcUaProgRequestData)}");
                     opcUaProgResponseData = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{progResponseBaseNode}");
                     Console.WriteLine($"Wall-e program response node data: {DumpDataValue(opcUaProgResponseData)}");
+                    if (opcUaProgResponseData.Value is ExtensionObject extensionObject)
+                    {
+                        // Option 1: Direct cast if already decoded
+                        if (extensionObject.Body is ResponseDto myData)
+                        {
+                            Console.WriteLine($"Status: {myData.Status}");
+                            Console.WriteLine($"Error: {myData.Error}");
+                        }
+                        else
+                        {
+                            // Option 2: Manual decode
+                            var decoded = ExtensionObject.ToEncodeable(extensionObject) as ResponseDto;
+
+                            if (decoded != null)
+                            {
+                                Console.WriteLine($"Status: {decoded.Status}");
+                                Console.WriteLine($"Error: {decoded.Error}");
+                            }
+                        }
+                    }
+                    /*
+                    opcUaProgRequestData = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{progRequestBaseNode}");
+                    Console.WriteLine($"Wall-e program request node data: {DumpDataValue(opcUaProgRequestData)}");
                     opcUaModeRequestData = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{modeRequestBaseNode}");
                     Console.WriteLine($"Wall-e ack request node data: {DumpDataValue(opcUaModeRequestData)}");
                     opcUaModeResponseData = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{modeResponseBaseNode}");
                     Console.WriteLine($"Wall-e response node data: {DumpDataValue(opcUaModeResponseData)}");
+                    */
+
                     break;
                 }
 
