@@ -142,7 +142,7 @@ namespace opcUaConnectionTest.OPC
                     {
                         Console.WriteLine($"opcUaProgResponseData.Value is ExtensionObject extensionObject");
                         // Option 1: Direct cast if already decoded
-                        if (extensionObject.Body is ResponseDto myData)
+                        if (opcUaProgResponseData.Value is ResponseDto myData)
                         {
                             Console.WriteLine($"extensionObject.Body is ResponseDto myData");
                             Console.WriteLine($"Status: {myData.Status}");
