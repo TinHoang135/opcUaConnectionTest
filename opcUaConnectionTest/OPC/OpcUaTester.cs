@@ -171,6 +171,25 @@ namespace opcUaConnectionTest.OPC
                     
                     opcUaProgRequestData = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{progRequestBaseNode}");
                     Console.WriteLine($"Wall-e program request node data: {DumpDataValue(opcUaProgRequestData)}");
+
+                    // decode the data
+                    if (opcUaProgRequestData.Value is ExtensionObject extensionObject2)
+                    {
+                        // Option 2: Manual decode
+                        // var decoded = ExtensionObject.ToEncodeable(extensionObject2) as WallECobotProgramRequestDto;
+                        WallECobotProgramRequestDto? decoded = null;
+
+                        if (extensionObject2.Body is byte[] debugBytes)
+                        {
+                            decoded = debugBytes.ToWallECobotProgramRequestDto("");
+                            Console.WriteLine($"Exec: {decoded.Exec}");
+                            Console.WriteLine($"Core Weight: {decoded.CoreWeight}");
+                            Console.WriteLine($"Core Diameter: {decoded.CoreDiameter}");
+                            Console.WriteLine($"Strategy: {decoded.Strategy}");
+                        }
+
+                    }
+
                     /*
                     opcUaModeRequestData = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{modeRequestBaseNode}");
                     Console.WriteLine($"Wall-e ack request node data: {DumpDataValue(opcUaModeRequestData)}");
