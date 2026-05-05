@@ -153,11 +153,19 @@ namespace opcUaConnectionTest.OPC
                             // Option 2: Manual decode
                             var decoded = ExtensionObject.ToEncodeable(extensionObject) as ResponseDto;
 
+                            if (extensionObject.Body is byte[] debugBytes)
+                            {
+                                decoded = debugBytes.ToResponseDto();
+                            }
+
                             if (decoded != null)
                             {
                                 Console.WriteLine($"Status: {decoded.Status}");
                                 Console.WriteLine($"Error: {decoded.Error}");
                             }
+
+                            
+
                         }
                     }
                     /*
