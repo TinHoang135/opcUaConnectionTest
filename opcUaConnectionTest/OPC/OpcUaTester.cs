@@ -121,8 +121,8 @@ namespace opcUaConnectionTest.OPC
 
             int ReadAttempt = 0;
             DataValue? opcUaProgResponseData;
-            /*
             DataValue? opcUaProgRequestData;
+            /*
             DataValue? opcUaModeResponseData;
             DataValue? opcUaModeRequestData;
             */
@@ -168,9 +168,10 @@ namespace opcUaConnectionTest.OPC
 
                         }
                     }
-                    /*
+                    
                     opcUaProgRequestData = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{progRequestBaseNode}");
                     Console.WriteLine($"Wall-e program request node data: {DumpDataValue(opcUaProgRequestData)}");
+                    /*
                     opcUaModeRequestData = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{modeRequestBaseNode}");
                     Console.WriteLine($"Wall-e ack request node data: {DumpDataValue(opcUaModeRequestData)}");
                     opcUaModeResponseData = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{modeResponseBaseNode}");
