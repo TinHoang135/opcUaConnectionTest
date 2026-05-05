@@ -6,9 +6,9 @@
 
     public sealed class ResponseDto : IEncodeable
     {
-        public ushort Error { get; set; }
         public int Status { get; set; }
-
+        public ushort Error { get; set; }
+        
         public ExpandedNodeId TypeId => null;
         public ExpandedNodeId BinaryEncodingId => null;
         public ExpandedNodeId XmlEncodingId => null;
