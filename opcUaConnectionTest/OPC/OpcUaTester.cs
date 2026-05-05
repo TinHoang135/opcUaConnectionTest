@@ -112,8 +112,8 @@ namespace opcUaConnectionTest.OPC
             var opcServerConfiguration = OpcUaApplication.Servers.FirstOrDefault(server => server.IntegrationVehicleId.Equals("M5_WALL-E")) ?? throw new Exception("OPC Server configuration for 'M5_WALL-E' not found.");
             var progRequestBaseNode = opcServerConfiguration.CobotProgramRequestBaseNodeId ?? throw new InvalidOperationException("Cobot program request base node ID is null.");
             var progResponseBaseNode = opcServerConfiguration.CobotProgramResponseBaseNodeId ?? throw new InvalidOperationException("Cobot program response base node ID is null.");
-            var ackRequestBaseNode = opcServerConfiguration.CobotAcknowledgeRequestBaseNodeId ?? throw new InvalidOperationException("Cobot ack request base node ID is null.");
-            var ackResponseBaseNode = opcServerConfiguration.CobotAcknowledgeResponseBaseNodeId ?? throw new InvalidOperationException("Cobot ack response base node ID is null.");
+            var modeRequestBaseNode = opcServerConfiguration.CobotModeRequestBaseNodeId ?? throw new InvalidOperationException("Cobot ack request base node ID is null.");
+            var modeResponseBaseNode = opcServerConfiguration.CobotModeResponseBaseNodeId ?? throw new InvalidOperationException("Cobot ack response base node ID is null.");
             string serverName = opcServerConfiguration.Name;
 
             Console.WriteLine($"Vehicle ID: {opcServerConfiguration.IntegrationVehicleId}.");
@@ -121,8 +121,8 @@ namespace opcUaConnectionTest.OPC
             int ReadAttempt = 0;
             DataValue? opcUaProgResponseData;
             DataValue? opcUaProgRequestData;
-            DataValue? opcUaAckResponseData;
-            DataValue? opcUaAckRequestData;
+            DataValue? opcUaModeResponseData;
+            DataValue? opcUaModeRequestData;
 
             // Read current state
             // Try a few times before exit
@@ -135,10 +135,10 @@ namespace opcUaConnectionTest.OPC
                     Console.WriteLine($"Wall-e program request node data: {DumpDataValue(opcUaProgRequestData)}");
                     opcUaProgResponseData = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{progResponseBaseNode}");
                     Console.WriteLine($"Wall-e program response node data: {DumpDataValue(opcUaProgResponseData)}");
-                    opcUaAckRequestData = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{ackRequestBaseNode}");
-                    Console.WriteLine($"Wall-e ack request node data: {DumpDataValue(opcUaAckRequestData)}");
-                    opcUaAckResponseData = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{ackResponseBaseNode}");
-                    Console.WriteLine($"Wall-e response node data: {DumpDataValue(opcUaAckResponseData)}");
+                    opcUaModeRequestData = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{modeRequestBaseNode}");
+                    Console.WriteLine($"Wall-e ack request node data: {DumpDataValue(opcUaModeRequestData)}");
+                    opcUaModeResponseData = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{modeResponseBaseNode}");
+                    Console.WriteLine($"Wall-e response node data: {DumpDataValue(opcUaModeResponseData)}");
                     break;
                 }
 
@@ -157,7 +157,7 @@ namespace opcUaConnectionTest.OPC
             var opcServerConfiguration = OpcUaApplication.Servers.FirstOrDefault(server => server.IntegrationVehicleId == "EVE_Gen2_000001") ?? throw new Exception("OPC Server configuration for EVE not found.");
             var CobotProgRequestBaseNode = opcServerConfiguration.CobotProgramRequestBaseNodeId ?? throw new InvalidOperationException("Cobot program request base node ID is null.");
             var CobotProgResponseBaseNode = opcServerConfiguration.CobotProgramResponseBaseNodeId ?? throw new InvalidOperationException("Cobot program response base node ID is null.");
-            var CobotAckRequestBaseNode = opcServerConfiguration.CobotAcknowledgeRequestBaseNodeId ?? throw new InvalidOperationException("Cobot program request base node ID is null.");
+            var CobotAckRequestBaseNode = opcServerConfiguration.CobotModeRequestBaseNodeId ?? throw new InvalidOperationException("Cobot program request base node ID is null.");
             var CobotAckResponseBaseNode = opcServerConfiguration.CobotAcknowledgeResponseBaseNodeId ?? throw new InvalidOperationException("Cobot program response base node ID is null.");
             var TowerRequestBaseNode = opcServerConfiguration.TowerProgramRequestBaseNodeId ?? throw new InvalidOperationException("Tower program request base node ID is null.");
             var TowerResponseBaseNode = opcServerConfiguration.TowerProgramResponseBaseNodeId ?? throw new InvalidOperationException("Tower program response base node ID is null.");
