@@ -14,7 +14,7 @@ namespace opcUaConnectionTest.OPC
 
         private readonly TimeSpan _initialDelay = TimeSpan.FromSeconds(5);
         private readonly TimeSpan _maxDelay = TimeSpan.FromMinutes(1);
-        private readonly TimeSpan _reconcileDelay = TimeSpan.FromSeconds(10);
+        // private readonly TimeSpan _reconcileDelay = TimeSpan.FromSeconds(10);
 
         private IOpcUaConnectionManager _opcUaConnectionManager;
 
