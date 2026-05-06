@@ -381,7 +381,7 @@ namespace opcUaConnectionTest.OPC
             const int doneStatus = 3;
             int failedReadAttempt = 0;
             DataValue? opcUaDataFanucProgResponse;
-            byte[] opcUaWriteData = request.ToByteArrayExecFalse();
+            byte[] opcUaRequestData = request.ToByteArrayExecFalse();
 
             try
             {
@@ -405,7 +405,7 @@ namespace opcUaConnectionTest.OPC
                             // Assert readiness
                             if (decoded.Status == readyStatus && decoded.Error == 0)
                                 break;
-                            else failedReadAttempt++;
+                            else throw new Exception($"Fanuc Cobot not ready for operation. Status: {decoded.Status}. Error: {decoded.Error}."); ;
                         }
                         else failedReadAttempt++;
                     }
@@ -413,17 +413,17 @@ namespace opcUaConnectionTest.OPC
 
                     if (failedReadAttempt >= 3)
                     {
-                        throw new Exception("Cobot not ready for operation.");
+                        throw new Exception("Failed reading Fanuc Cobot response data.");
                     }
                     await Task.Delay(1000, cancellationToken);
                 }
 
                 // Write request parameters
-                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}", opcUaWriteData, cancellationToken);
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}", opcUaRequestData, cancellationToken);
 
                 // Trigger execution by providing a lead edge to Exec bit
-                opcUaWriteData.SetExecTrue();
-                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}", opcUaWriteData, cancellationToken);
+                opcUaRequestData.SetExecTrue();
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}", opcUaRequestData, cancellationToken);
                 
                 // Monitor execution via response nodes until done or error
                 bool operationStarted = false;
@@ -447,12 +447,12 @@ namespace opcUaConnectionTest.OPC
                             }
                             else if (decoded.Status == readyStatus)
                             {
-                                if (operationStarted) throw new Exception("Unexpected Cobot status: Cobot returns to Ready status during operation");
+                                if (operationStarted) throw new Exception("Unexpected Fanuc Cobot status: Cobot returns to Ready status during operation");
                                 else { }
                             }
                             else if (decoded.Status == doneStatus) break;
-                            else if (decoded.Status == errorStatus) throw new Exception($"Cobot execution error: {decoded.Error}");
-                            else throw new Exception($"Unknown Cobot status: {decoded.Status}");
+                            else if (decoded.Status == errorStatus) throw new Exception($"Fanuc Cobot execution error: {decoded.Error}");
+                            else throw new Exception($"Unknown Fanuc Cobot status: {decoded.Status}");
                             // Throttle
                             await Task.Delay(1000, cancellationToken);
                         }
@@ -460,7 +460,7 @@ namespace opcUaConnectionTest.OPC
                     }
                     else failedReadAttempt++;
                     
-                    if (failedReadAttempt >= 3) throw new Exception("Failed reading cobot response state.");
+                    if (failedReadAttempt >= 3) throw new Exception("Failed reading Fanuc Cobot response data.");
                 }
             }
             catch
@@ -471,12 +471,17 @@ namespace opcUaConnectionTest.OPC
             finally
             {
                 // Reset execution trigger bit
-                opcUaWriteData.SetExecFalse();
-                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}", opcUaWriteData, cancellationToken);
+                opcUaRequestData.SetExecFalse();
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}", opcUaRequestData, cancellationToken);
 
                 // Reset state to be ready for next execution
-                // await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{responseBaseNode}/Error", 0, cancellationToken);
-                // await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{responseBaseNode}/Status", readyStatus, cancellationToken);
+                var resetResponseNode = new ResponseDto
+                {
+                    Status = readyStatus,
+                    Error = 0
+                };
+                byte[] opcUaResponseData = resetResponseNode.ToByteArray();
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{responseBaseNode}", opcUaResponseData, cancellationToken);
             }
         }
 

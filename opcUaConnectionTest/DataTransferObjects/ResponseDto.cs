@@ -33,6 +33,21 @@
                 Error = BitConverter.ToUInt16(bytes, 4)    // bytes 4..5
             };
         }
+
+        public static byte[] ToByteArray(this ResponseDto dto)
+        {
+            ArgumentNullException.ThrowIfNull(dto);
+
+            var bytes = new byte[PayloadSize];
+
+            // Status
+            BitConverter.GetBytes(dto.Status).CopyTo(bytes, StatusOffset);
+
+            // Error
+            BitConverter.GetBytes(dto.Error).CopyTo(bytes, ErrorOffset);
+
+            return bytes;
+        }
     }
 
     /*
