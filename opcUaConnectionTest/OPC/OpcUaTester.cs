@@ -381,7 +381,6 @@ namespace opcUaConnectionTest.OPC
             const int doneStatus = 3;
             int failedReadAttempt = 0;
             DataValue? opcUaDataFanucProgResponse;
-            DataValue? errorDataValue;
 
             try
             {
@@ -391,6 +390,7 @@ namespace opcUaConnectionTest.OPC
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
+                    // get data from the response node
                     opcUaDataFanucProgResponse = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{responseBaseNode}");
                     // Console.WriteLine($"EVE Cobot Program Response data: {DumpDataValue(opcUaDataFanucProgResponse)}");
                     // decode the data
@@ -399,8 +399,8 @@ namespace opcUaConnectionTest.OPC
                         if (progResponseExtensionObject.Body is byte[] debugBytes)
                         {
                             ResponseDto decoded = debugBytes.ToResponseDto();
-                            Console.WriteLine($"Status: {decoded.Status}");
-                            Console.WriteLine($"Error: {decoded.Error}");
+                            Console.WriteLine($"Fanuc program response Status: {decoded.Status}");
+                            Console.WriteLine($"Fanuc program response Error: {decoded.Error}");
                             // Assert readiness
                             if (decoded.Status == readyStatus && decoded.Error == 0)
                                 break;
@@ -426,54 +426,46 @@ namespace opcUaConnectionTest.OPC
 
                 // Trigger execution by providing a lead edge to Exec bit
                 opcUaWriteData.SetExecTrue();
-                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/Exec", false, cancellationToken);
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}", opcUaWriteData, cancellationToken);
                 
                 // Monitor execution via response nodes until done or error
-                int? statusValue;
-                int? errorValue;
                 bool operationStarted = false;
                 failedReadAttempt = 0;
 
                 while (!cancellationToken.IsCancellationRequested)
                 {
-
                     cancellationToken.ThrowIfCancellationRequested();
-
-                    statusDataValue = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{responseBaseNode}/Status");
-                    errorDataValue = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{responseBaseNode}/Error");
-
-                    statusValue = statusDataValue != null ? OpcInteraction.TryConvertToInt32(statusDataValue) : null;
-                    errorValue = errorDataValue != null ? OpcInteraction.TryConvertToInt16(errorDataValue) : null;
-
-                    if (statusValue.HasValue && errorValue.HasValue)
+                    // get data from the response node
+                    opcUaDataFanucProgResponse = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{responseBaseNode}");
+                    // decode the data
+                    if (opcUaDataFanucProgResponse.Value is ExtensionObject progResponseExtensionObject)
                     {
-                        failedReadAttempt = 0;
-                        if (statusValue == doneStatus) break;
-                        else if (statusValue == errorStatus) throw new Exception($"Cobot execution error: {errorValue}");
-                        else if (statusValue == activeStatus)
+                        if (progResponseExtensionObject.Body is byte[] debugBytes)
                         {
-                            operationStarted = true;
+                            ResponseDto decoded = debugBytes.ToResponseDto();
+                            failedReadAttempt = 0;
+                            if (decoded.Status == doneStatus) break;
+                            else if (decoded.Status == errorStatus) throw new Exception($"Cobot execution error: {decoded.Error}");
+                            else if (decoded.Status == activeStatus)
+                            {
+                                operationStarted = true;
+                            }
+                            else if (decoded.Status == readyStatus)
+                            {
+                                if (operationStarted) throw new Exception("Unexpected Cobot status: Cobot returns to Ready status during operation");
+                                else { }
+                            }
+                            else throw new Exception($"Unknown Cobot status: {decoded.Status}");
+                            // Throttle
+                            await Task.Delay(1000, cancellationToken);
                         }
-                        else if (statusValue == readyStatus)
-                        {
-                            if (operationStarted) throw new Exception("Unexpected Cobot status: Cobot returns to Ready status during operation");
-                            else { }
-                        }
-                        else throw new Exception($"Unknown Cobot status: {statusValue}");
-
-                    }
-
-                    else
-                    {
-                        if (failedReadAttempt >= 3) throw new Exception("Failed reading cobot response state.");
                         else failedReadAttempt++;
                     }
-
-                    // Throttle
-                    await Task.Delay(1000, cancellationToken);
+                    else failedReadAttempt++;
+                    
+                    if (failedReadAttempt >= 3) throw new Exception("Failed reading cobot response state.");
                 }
             }
-
             catch
             {
                 throw;
