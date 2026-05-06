@@ -2,10 +2,8 @@
 {
     public sealed class WallECobotProgramRequestDto
     {
-        public string IntegrationVehicleId { get; set; }
+        public required string IntegrationVehicleId { get; set; }
 
-        // Exec bit
-        public bool Exec { get; init; }
         // Int Parameter
         public int Task { get; init; }
 
@@ -38,14 +36,14 @@
         private const int StrategyOffset = FloatsOffset + (FloatCount * sizeof(float));  // 58
         public const int PayloadSize = StrategyOffset + sizeof(int);               // 62
 
-        public static byte[] ToByteArray(this WallECobotProgramRequestDto dto)
+        public static byte[] ToByteArrayExecFalse(this WallECobotProgramRequestDto dto)
         {
             ArgumentNullException.ThrowIfNull(dto);
 
             var bytes = new byte[PayloadSize];
 
             // Exec
-            bytes[ExecOffset] = dto.Exec ? (byte)1 : (byte)0;
+            bytes[ExecOffset] = (byte)0;
 
             // Bools (length-prefixed)
             BitConverter.GetBytes(BoolCount).CopyTo(bytes, BoolsLengthOffset);
@@ -100,7 +98,6 @@
             return new WallECobotProgramRequestDto
             {
                 IntegrationVehicleId = integrationVehicleId,
-                Exec = bytes[ExecOffset] != 0,
                 Task = BitConverter.ToInt32(bytes, IntsOffset),                    // ints[0]
                 CoreWeight = BitConverter.ToSingle(bytes, FloatsOffset),                  // floats[0]
                 CoreDiameter = BitConverter.ToSingle(bytes, FloatsOffset + sizeof(float)),  // floats[1]

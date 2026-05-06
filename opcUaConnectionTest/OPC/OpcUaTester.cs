@@ -153,7 +153,6 @@ namespace opcUaConnectionTest.OPC
                         if (progRequestExtensionObject.Body is byte[] debugBytes)
                         {
                             WallECobotProgramRequestDto decoded = debugBytes.ToWallECobotProgramRequestDto(opcServerConfiguration.IntegrationVehicleId);
-                            Console.WriteLine($"Exec: {decoded.Exec}");
                             Console.WriteLine($"Task: {decoded.Task}");
                             Console.WriteLine($"Core Weight: {decoded.CoreWeight}");
                             Console.WriteLine($"Core Diameter: {decoded.CoreDiameter}");
