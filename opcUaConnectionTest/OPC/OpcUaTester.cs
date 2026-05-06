@@ -287,7 +287,21 @@ namespace opcUaConnectionTest.OPC
 
                     opcUaDataTowerRequest = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{TowerRequestBaseNode}");
                     Console.WriteLine($"EVE Tower Request data: {DumpDataValue(opcUaDataTowerRequest)}");
-                    
+                    if (opcUaDataTowerRequest.Value is ExtensionObject TowerRequestExtensionObject)
+                    {
+                        if (TowerRequestExtensionObject.Body is byte[] debugBytes)
+                        {
+                            TowerProgramRequestDto decoded = debugBytes.ToTowerProgramRequestDto(opcServerConfiguration.IntegrationVehicleId);
+                            Console.WriteLine($"Weight: {decoded.Weight}");
+                            Console.WriteLine($"Roll Depth: {decoded.Depth}");
+                            Console.WriteLine($"Station: {decoded.Station}");
+                            Console.WriteLine($"Task: {decoded.Task}");
+                            Console.WriteLine($"Transfer Point: {decoded.TransferPoint}");
+                            Console.WriteLine($"Roll Inner Diameter: {decoded.InnerDiameter}");
+                            Console.WriteLine($"Roll Outer Diameter: {decoded.OuterDiameter}");
+                        }
+                    }
+
                     opcUaDataTowerResponse = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{TowerResponseBaseNode}");
                     Console.WriteLine($"EVE Tower Response data: {DumpDataValue(opcUaDataTowerResponse)}");
                     // decode the data
@@ -303,6 +317,16 @@ namespace opcUaConnectionTest.OPC
 
                     opcUaDataMuteRequest = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{MuteRequestBaseNode}");
                     Console.WriteLine($"Mute Request data: {DumpDataValue(opcUaDataMuteRequest)}");
+                    if (opcUaDataMuteRequest.Value is ExtensionObject MuteRequestExtensionObject)
+                    {
+                        if (MuteRequestExtensionObject.Body is byte[] debugBytes)
+                        {
+                            SafetyZoneProgramRequestDto decoded = debugBytes.ToSafetyZoneProgramRequestDto(opcServerConfiguration.IntegrationVehicleId);
+                            Console.WriteLine($"Mute: {decoded.Mute}");
+                            Console.WriteLine($"Station: {decoded.Station}");
+                            Console.WriteLine($"Task: {decoded.Task}");
+                        }
+                    }
 
                     opcUaDataMuteResponse = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{MuteResponseBaseNode}");
                     Console.WriteLine($"Mute Response data: {DumpDataValue(opcUaDataMuteResponse)}");
@@ -343,7 +367,7 @@ namespace opcUaConnectionTest.OPC
                 // Float Parameter
                 CoreWeight = 0.75f,
                 CoreDiameter = 100f,
-                Strategy = 1
+                Strategy = 0
             };
 
             var opcServerConfiguration = OpcUaApplication.Servers.FirstOrDefault(server => server.IntegrationVehicleId == request.IntegrationVehicleId) ?? throw new Exception("OPC Server configuration for 'EVE_Gen2_000001' not found.");
