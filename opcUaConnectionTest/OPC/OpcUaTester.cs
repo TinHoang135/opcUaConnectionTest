@@ -162,7 +162,16 @@ namespace opcUaConnectionTest.OPC
 
                     opcUaModeRequestData = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{modeRequestBaseNode}");
                     Console.WriteLine($"Wall-e ack request node data: {DumpDataValue(opcUaModeRequestData)}");
-                    
+                    //decode data
+                    if (opcUaModeRequestData.Value is ExtensionObject modeRequestExtensionObject)
+                    {
+                        if (modeRequestExtensionObject.Body is byte[] debugBytes)
+                        {
+                            CobotModeRequestDto decoded = debugBytes.ToCobotModeRequestDto(opcServerConfiguration.IntegrationVehicleId);
+                            Console.WriteLine($"Cobot Mode: {decoded.CobotMode}");
+                        }
+                    }
+
                     opcUaModeResponseData = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{modeResponseBaseNode}");
                     Console.WriteLine($"Wall-e response node data: {DumpDataValue(opcUaModeResponseData)}");
                     // decode the data

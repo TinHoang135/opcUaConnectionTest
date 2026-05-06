@@ -14,8 +14,8 @@ namespace PG.LIFT.Integrations.EMMS.DataTransferObjects
     public static class CobotModeRequestDtoExtensions
     {
         private const int ExecOffset = 0;                                      // 0
-        private const int ModeOffset = ExecOffset + sizeof(bool);              // 1
-        public const int PayloadSize = ModeOffset + sizeof(int);               // 5
+        private const int CobotModeOffset = ExecOffset + sizeof(bool);         // 1
+        public const int PayloadSize = CobotModeOffset + sizeof(int);          // 5
 
         public static byte[] ToByteArrayExecFalse(this CobotModeRequestDto dto)
         {
@@ -27,7 +27,7 @@ namespace PG.LIFT.Integrations.EMMS.DataTransferObjects
             bytes[ExecOffset] = (byte)0;
 
             // Mode
-            BitConverter.GetBytes(dto.CobotMode).CopyTo(bytes, ModeOffset);
+            BitConverter.GetBytes(dto.CobotMode).CopyTo(bytes, CobotModeOffset);
 
             return bytes;
         }
@@ -47,7 +47,7 @@ namespace PG.LIFT.Integrations.EMMS.DataTransferObjects
             return new CobotModeRequestDto
             {
                 IntegrationVehicleId = integrationVehicleId,
-                CobotMode = BitConverter.ToInt32(bytes, ModeOffset)
+                CobotMode = BitConverter.ToInt32(bytes, CobotModeOffset)
             };
         }
     }
