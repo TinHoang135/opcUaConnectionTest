@@ -381,6 +381,7 @@ namespace opcUaConnectionTest.OPC
             const int doneStatus = 3;
             int failedReadAttempt = 0;
             DataValue? opcUaDataFanucProgResponse;
+            byte[] opcUaWriteData = request.ToByteArrayExecFalse();
 
             try
             {
@@ -404,24 +405,20 @@ namespace opcUaConnectionTest.OPC
                             // Assert readiness
                             if (decoded.Status == readyStatus && decoded.Error == 0)
                                 break;
-                            else
-                            {
-                                if (failedReadAttempt >= 3)
-                                {
-                                    if (decoded.Status != readyStatus) throw new Exception($"Cobot not ready. Current status: {decoded.Status}.");
-                                    else if (decoded.Error != 0) throw new Exception($"Cobot reported error before execution. Error code: {decoded.Error}.");
-                                    else throw new Exception("Unknown error.");
-                                }
-                                else failedReadAttempt++;
-                            }
-                            // throttle
-                            await Task.Delay(1000, cancellationToken);
+                            else failedReadAttempt++;
                         }
+                        else failedReadAttempt++;
                     }
+                    else failedReadAttempt++;
+
+                    if (failedReadAttempt >= 3)
+                    {
+                        throw new Exception("Cobot not ready for operation.");
+                    }
+                    await Task.Delay(1000, cancellationToken);
                 }
 
                 // Write request parameters
-                byte[] opcUaWriteData = request.ToByteArrayExecFalse();
                 await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}", opcUaWriteData, cancellationToken);
 
                 // Trigger execution by providing a lead edge to Exec bit
@@ -444,9 +441,7 @@ namespace opcUaConnectionTest.OPC
                         {
                             ResponseDto decoded = debugBytes.ToResponseDto();
                             failedReadAttempt = 0;
-                            if (decoded.Status == doneStatus) break;
-                            else if (decoded.Status == errorStatus) throw new Exception($"Cobot execution error: {decoded.Error}");
-                            else if (decoded.Status == activeStatus)
+                            if (decoded.Status == activeStatus)
                             {
                                 operationStarted = true;
                             }
@@ -455,6 +450,8 @@ namespace opcUaConnectionTest.OPC
                                 if (operationStarted) throw new Exception("Unexpected Cobot status: Cobot returns to Ready status during operation");
                                 else { }
                             }
+                            else if (decoded.Status == doneStatus) break;
+                            else if (decoded.Status == errorStatus) throw new Exception($"Cobot execution error: {decoded.Error}");
                             else throw new Exception($"Unknown Cobot status: {decoded.Status}");
                             // Throttle
                             await Task.Delay(1000, cancellationToken);
@@ -474,11 +471,12 @@ namespace opcUaConnectionTest.OPC
             finally
             {
                 // Reset execution trigger bit
-                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/Exec", false, cancellationToken);
+                opcUaWriteData.SetExecFalse();
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}", opcUaWriteData, cancellationToken);
 
                 // Reset state to be ready for next execution
-                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{responseBaseNode}/Error", 0, cancellationToken);
-                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{responseBaseNode}/Status", readyStatus, cancellationToken);
+                // await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{responseBaseNode}/Error", 0, cancellationToken);
+                // await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{responseBaseNode}/Status", readyStatus, cancellationToken);
             }
         }
 

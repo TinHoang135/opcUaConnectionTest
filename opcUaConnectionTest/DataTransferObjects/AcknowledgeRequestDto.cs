@@ -28,6 +28,12 @@
             bytes[ExecOffset] = (byte)1;
         }
 
+        public static void SetExecFalse(this byte[] bytes)
+        {
+            // Exec to True
+            bytes[ExecOffset] = (byte)0;
+        }
+
         public static AcknowledgeRequestDto ToAcknowledgeRequestDto(
             this byte[] bytes,
             string integrationVehicleId)
