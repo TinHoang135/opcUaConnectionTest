@@ -563,11 +563,11 @@ namespace opcUaConnectionTest.OPC
                 await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}", writeExtObjExec, cancellationToken);
 
                 // Write request parameters
-                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}", opcUaRequestData, cancellationToken);
+                // await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}", opcUaRequestData, cancellationToken);
 
                 // Trigger execution by providing a lead edge to Exec bit
                 // opcUaRequestData.SetExecTrue();
-                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}", opcUaRequestData, cancellationToken);
+                // await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}", opcUaRequestData, cancellationToken);
 
                 // Monitor execution via response nodes until done or error
                 bool operationStarted = false;
