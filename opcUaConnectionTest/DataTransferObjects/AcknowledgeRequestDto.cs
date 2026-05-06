@@ -3,7 +3,6 @@
     public sealed class AcknowledgeRequestDto
     {
         public required string IntegrationVehicleId { get; set; }
-
     }
 
     public static class AcknowledgeRequestDtoExtensions

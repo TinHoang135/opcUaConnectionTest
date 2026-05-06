@@ -263,7 +263,15 @@ namespace opcUaConnectionTest.OPC
 
                     opcUaDataFanucAckRequest = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{CobotAckRequestBaseNode}");
                     Console.WriteLine($"EVE Cobot Ack Request data: {DumpDataValue(opcUaDataFanucAckRequest)}");
-                    
+                    // decode the data
+                    if (opcUaDataFanucAckRequest.Value is ExtensionObject ackRequestExtensionObject)
+                    {
+                        if (ackRequestExtensionObject.Body is byte[] debugBytes)
+                        {
+                            AcknowledgeRequestDto decoded = debugBytes.ToAcknowledgeRequestDto(opcServerConfiguration.IntegrationVehicleId);
+                        }
+                    }
+
                     opcUaDataFanucAckResponse = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{CobotAckResponseBaseNode}");
                     Console.WriteLine($"EVE Cobot Ack Response data: {DumpDataValue(opcUaDataFanucAckResponse)}");
                     // decode the data
