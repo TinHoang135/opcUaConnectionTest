@@ -453,14 +453,14 @@ namespace opcUaConnectionTest.OPC
                             else if (decoded.Status == doneStatus) break;
                             else if (decoded.Status == errorStatus) throw new Exception($"Fanuc Cobot execution error: {decoded.Error}");
                             else throw new Exception($"Unknown Fanuc Cobot status: {decoded.Status}");
-                            // Throttle
-                            await Task.Delay(1000, cancellationToken);
                         }
                         else failedReadAttempt++;
                     }
                     else failedReadAttempt++;
                     
                     if (failedReadAttempt >= 3) throw new Exception("Failed reading Fanuc Cobot response data.");
+                    // Throttle
+                    await Task.Delay(1000, cancellationToken);
                 }
             }
             catch
