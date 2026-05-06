@@ -241,7 +241,7 @@ namespace opcUaConnectionTest.OPC
                         {
                             FanucCobotProgramRequestDto decoded = debugBytes.ToFanucCobotProgramRequestDto(opcServerConfiguration.IntegrationVehicleId);
                             Console.WriteLine($"Station: {decoded.Station}");
-                            Console.WriteLine($"Station:  {decoded.Task}");
+                            Console.WriteLine($"Task:  {decoded.Task}");
                             Console.WriteLine($"Transfer Point: {decoded.TransferPoint}");
                             Console.WriteLine($"Core Weight:  {decoded.CoreWeight}");
                             Console.WriteLine($"Core Diameter:  {decoded.CoreDiameter}");
@@ -380,7 +380,7 @@ namespace opcUaConnectionTest.OPC
             const int activeStatus = 2;
             const int doneStatus = 3;
             int failedReadAttempt = 0;
-            DataValue? statusDataValue;
+            DataValue? opcUaDataFanucProgResponse;
             DataValue? errorDataValue;
 
             try
@@ -391,40 +391,43 @@ namespace opcUaConnectionTest.OPC
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    statusDataValue = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{responseBaseNode}/Status");
-                    errorDataValue = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{responseBaseNode}/Error");
-                    int? initialStatus = statusDataValue != null ? OpcInteraction.TryConvertToInt32(statusDataValue) : null;
-                    int? initialError = errorDataValue != null ? OpcInteraction.TryConvertToInt16(errorDataValue) : null;
-
-                    // Assert readiness
-                    if (initialStatus.HasValue && initialError.HasValue && initialStatus.Value == readyStatus && initialError.Value == 0)
-                        break;
-
-                    else
+                    opcUaDataFanucProgResponse = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{responseBaseNode}");
+                    // Console.WriteLine($"EVE Cobot Program Response data: {DumpDataValue(opcUaDataFanucProgResponse)}");
+                    // decode the data
+                    if (opcUaDataFanucProgResponse.Value is ExtensionObject progResponseExtensionObject)
                     {
-                        if (failedReadAttempt >= 3)
+                        if (progResponseExtensionObject.Body is byte[] debugBytes)
                         {
-                            if (!initialStatus.HasValue || !initialError.HasValue) throw new Exception("Failed to read cobot response state.");
-                            else if (initialStatus.Value != readyStatus) throw new Exception($"Cobot not ready. Current status: {initialStatus.Value}.");
-                            else if (initialError.Value != 0) throw new Exception($"Cobot reported error before execution. Error code: {initialError.Value}.");
-                            else throw new Exception("Unknown error.");
+                            ResponseDto decoded = debugBytes.ToResponseDto();
+                            Console.WriteLine($"Status: {decoded.Status}");
+                            Console.WriteLine($"Error: {decoded.Error}");
+                            // Assert readiness
+                            if (decoded.Status == readyStatus && decoded.Error == 0)
+                                break;
+                            else
+                            {
+                                if (failedReadAttempt >= 3)
+                                {
+                                    if (decoded.Status != readyStatus) throw new Exception($"Cobot not ready. Current status: {decoded.Status}.");
+                                    else if (decoded.Error != 0) throw new Exception($"Cobot reported error before execution. Error code: {decoded.Error}.");
+                                    else throw new Exception("Unknown error.");
+                                }
+                                else failedReadAttempt++;
+                            }
+                            // throttle
+                            await Task.Delay(1000, cancellationToken);
                         }
-                        else failedReadAttempt++;
                     }
-                    // throttle
-                    await Task.Delay(1000, cancellationToken);
                 }
 
                 // Write request parameters
-                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/Strategy", request.Strategy, cancellationToken);
-                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/RobSkillParametersInts", request.GetIntArray(), cancellationToken);
-                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/RobSkillParametersFloats", request.GetFloatArray(), cancellationToken);
-                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/RobSkillParametersBools", request.GetBoolArray(), cancellationToken);
+                byte[] opcUaWriteData = request.ToByteArrayExecFalse();
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}", opcUaWriteData, cancellationToken);
 
                 // Trigger execution by providing a lead edge to Exec bit
+                opcUaWriteData.SetExecTrue();
                 await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/Exec", false, cancellationToken);
-                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/Exec", true, cancellationToken);
-
+                
                 // Monitor execution via response nodes until done or error
                 int? statusValue;
                 int? errorValue;

@@ -32,12 +32,6 @@ namespace PG.LIFT.Integrations.EMMS.DataTransferObjects
             return bytes;
         }
 
-        public static void SetExecTrue(this byte[] bytes)
-        {
-            // Exec to True
-            bytes[ExecOffset] = (byte)1;
-        }
-
         public static CobotModeRequestDto ToCobotModeRequestDto(
             this byte[] bytes,
             string integrationVehicleId)
