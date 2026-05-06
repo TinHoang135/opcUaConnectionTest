@@ -92,10 +92,12 @@ namespace opcUaConnectionTest.OPC
             else
             {
                 sb.AppendLine($"Status Code: {dataValue.StatusCode}");
+                /*
                 sb.AppendLine($"Source Timestamp: {dataValue.SourceTimestamp.ToString()}");
                 sb.AppendLine($"Server Timestamp: {dataValue.ServerTimestamp.ToString()}");
                 sb.AppendLine($"Source Picoseconds: {dataValue.SourcePicoseconds}");
                 sb.AppendLine($"Server Picoseconds: {dataValue.ServerPicoseconds}");
+                */
                 sb.AppendLine($"Value Type: {dataValue.Value.GetType().FullName}");
                 sb.AppendLine($"Value ToString: {dataValue.Value.ToString()}");
                 sb.AppendLine($"Value: {dataValue.Value}");
@@ -207,17 +209,21 @@ namespace opcUaConnectionTest.OPC
             var CobotAckResponseBaseNode = opcServerConfiguration.CobotAcknowledgeResponseBaseNodeId ?? throw new InvalidOperationException("Cobot program response base node ID is null.");
             var TowerRequestBaseNode = opcServerConfiguration.TowerProgramRequestBaseNodeId ?? throw new InvalidOperationException("Tower program request base node ID is null.");
             var TowerResponseBaseNode = opcServerConfiguration.TowerProgramResponseBaseNodeId ?? throw new InvalidOperationException("Tower program response base node ID is null.");
+            var MuteRequestBaseNode = opcServerConfiguration.SafetyZoneMuteRequestBaseNodeId ?? throw new InvalidOperationException("Mute request base node ID is null.");
+            var MuteResponseBaseNode = opcServerConfiguration.SafetyZoneMuteResponseBaseNodeId ?? throw new InvalidOperationException("Mute response base node ID is null.");
             string serverName = opcServerConfiguration.Name;
 
             Console.WriteLine($"Vehicle ID: {opcServerConfiguration.IntegrationVehicleId}.");
 
             int ReadAttempt = 0;
-            DataValue? opcUaDataCobotProgResponse;
-            DataValue? opcUaDataCobotProgRequest;
-            DataValue? opcUaDataCobotAckResponse;
-            DataValue? opcUaDataCobotAckRequest;
+            DataValue? opcUaDataFanucProgResponse;
+            DataValue? opcUaDataFanucProgRequest;
+            DataValue? opcUaDataFanucAckResponse;
+            DataValue? opcUaDataFanucAckRequest;
             DataValue? opcUaDataTowerResponse;
             DataValue? opcUaDataTowerRequest;
+            DataValue? opcUaDataMuteResponse;
+            DataValue? opcUaDataMuteRequest;
 
             // Read current state
             // Try a few times before exit
@@ -226,18 +232,83 @@ namespace opcUaConnectionTest.OPC
                 try
                 {
                     // Read OPC UA nodes
-                    opcUaDataCobotProgRequest = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{CobotProgRequestBaseNode}");
-                    Console.WriteLine($"EVE Cobot Program Request data: {DumpDataValue(opcUaDataCobotProgRequest)}");
-                    opcUaDataCobotProgResponse = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{CobotProgResponseBaseNode}");
-                    Console.WriteLine($"EVE Cobot Program Response data: {DumpDataValue(opcUaDataCobotProgResponse)}");
-                    opcUaDataCobotAckRequest = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{CobotAckRequestBaseNode}");
-                    Console.WriteLine($"EVE Cobot Ack Request data: {DumpDataValue(opcUaDataCobotAckRequest)}");
-                    opcUaDataCobotAckResponse = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{CobotAckResponseBaseNode}");
-                    Console.WriteLine($"EVE Cobot Ack Response data: {DumpDataValue(opcUaDataCobotAckResponse)}");
+                    opcUaDataFanucProgRequest = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{CobotProgRequestBaseNode}");
+                    Console.WriteLine($"EVE Cobot Program Request data: {DumpDataValue(opcUaDataFanucProgRequest)}");
+                    // decode the data
+                    if (opcUaDataFanucProgRequest.Value is ExtensionObject progRequestExtensionObject)
+                    {
+                        if (progRequestExtensionObject.Body is byte[] debugBytes)
+                        {
+                            FanucCobotProgramRequestDto decoded = debugBytes.ToFanucCobotProgramRequestDto(opcServerConfiguration.IntegrationVehicleId);
+                            Console.WriteLine($"Station: {decoded.Station}");
+                            Console.WriteLine($"Station:  {decoded.Task}");
+                            Console.WriteLine($"Transfer Point: {decoded.TransferPoint}");
+                            Console.WriteLine($"Core Weight:  {decoded.CoreWeight}");
+                            Console.WriteLine($"Core Diameter:  {decoded.CoreDiameter}");
+                        }
+                    }
+
+                    opcUaDataFanucProgResponse = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{CobotProgResponseBaseNode}");
+                    Console.WriteLine($"EVE Cobot Program Response data: {DumpDataValue(opcUaDataFanucProgResponse)}");
+                    // decode the data
+                    if (opcUaDataFanucProgResponse.Value is ExtensionObject progResponseExtensionObject)
+                    {
+                        if (progResponseExtensionObject.Body is byte[] debugBytes)
+                        {
+                            ResponseDto decoded = debugBytes.ToResponseDto();
+                            Console.WriteLine($"Status: {decoded.Status}");
+                            Console.WriteLine($"Error: {decoded.Error}");
+                        }
+                    }
+
+                    opcUaDataFanucAckRequest = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{CobotAckRequestBaseNode}");
+                    Console.WriteLine($"EVE Cobot Ack Request data: {DumpDataValue(opcUaDataFanucAckRequest)}");
+                    
+                    opcUaDataFanucAckResponse = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{CobotAckResponseBaseNode}");
+                    Console.WriteLine($"EVE Cobot Ack Response data: {DumpDataValue(opcUaDataFanucAckResponse)}");
+                    // decode the data
+                    if (opcUaDataFanucAckResponse.Value is ExtensionObject ackResponseExtensionObject)
+                    {
+                        if (ackResponseExtensionObject.Body is byte[] debugBytes)
+                        {
+                            ResponseDto decoded = debugBytes.ToResponseDto();
+                            Console.WriteLine($"Status: {decoded.Status}");
+                            Console.WriteLine($"Error: {decoded.Error}");
+                        }
+                    }
+
                     opcUaDataTowerRequest = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{TowerRequestBaseNode}");
                     Console.WriteLine($"EVE Tower Request data: {DumpDataValue(opcUaDataTowerRequest)}");
+                    
                     opcUaDataTowerResponse = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{TowerResponseBaseNode}");
                     Console.WriteLine($"EVE Tower Response data: {DumpDataValue(opcUaDataTowerResponse)}");
+                    // decode the data
+                    if (opcUaDataTowerResponse.Value is ExtensionObject TowerResponseExtensionObject)
+                    {
+                        if (TowerResponseExtensionObject.Body is byte[] debugBytes)
+                        {
+                            ResponseDto decoded = debugBytes.ToResponseDto();
+                            Console.WriteLine($"Status: {decoded.Status}");
+                            Console.WriteLine($"Error: {decoded.Error}");
+                        }
+                    }
+
+                    opcUaDataMuteRequest = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{MuteRequestBaseNode}");
+                    Console.WriteLine($"Mute Request data: {DumpDataValue(opcUaDataMuteRequest)}");
+
+                    opcUaDataMuteResponse = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{MuteResponseBaseNode}");
+                    Console.WriteLine($"Mute Response data: {DumpDataValue(opcUaDataMuteResponse)}");
+                    // decode the data
+                    if (opcUaDataMuteResponse.Value is ExtensionObject MuteResponseExtensionObject)
+                    {
+                        if (MuteResponseExtensionObject.Body is byte[] debugBytes)
+                        {
+                            ResponseDto decoded = debugBytes.ToResponseDto();
+                            Console.WriteLine($"Status: {decoded.Status}");
+                            Console.WriteLine($"Error: {decoded.Error}");
+                        }
+                    }
+
                     break;
                 }
 

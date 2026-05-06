@@ -77,6 +77,12 @@
             return bytes;
         }
 
+        public static void SetExecTrue(this byte[] bytes)
+        {
+            // Exec to True
+            bytes[ExecOffset] = (byte)1;
+        }
+
         public static WallECobotProgramRequestDto ToWallECobotProgramRequestDto(
             this byte[] bytes,
             string integrationVehicleId)
