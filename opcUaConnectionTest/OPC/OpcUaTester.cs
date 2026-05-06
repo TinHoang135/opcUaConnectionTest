@@ -548,6 +548,20 @@ namespace opcUaConnectionTest.OPC
                     await Task.Delay(1000, cancellationToken);
                 }
 
+                // Read the current request node to get the ExtensionObject TypeId (UDT structure)
+                var currentRequestData = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{requestBaseNode}");
+                if (currentRequestData.Value is not ExtensionObject currentExtObj)
+                    throw new Exception("Request node does not contain an ExtensionObject.");
+
+                // Write request parameters wrapped in an ExtensionObject matching the node's type
+                var writeExtObj = new ExtensionObject(currentExtObj.TypeId, opcUaRequestData);
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}", writeExtObj, cancellationToken);
+
+                // Trigger execution by providing a lead edge to Exec bit
+                // opcUaRequestData.SetExecTrue();
+                var writeExtObjExec = new ExtensionObject(currentExtObj.TypeId, opcUaRequestData);
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}", writeExtObjExec, cancellationToken);
+
                 // Write request parameters
                 await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}", opcUaRequestData, cancellationToken);
 
