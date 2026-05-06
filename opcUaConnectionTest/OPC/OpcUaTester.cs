@@ -562,13 +562,6 @@ namespace opcUaConnectionTest.OPC
                 var writeExtObjExec = new ExtensionObject(currentExtObj.TypeId, opcUaRequestData);
                 await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}", writeExtObjExec, cancellationToken);
 
-                // Write request parameters
-                // await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}", opcUaRequestData, cancellationToken);
-
-                // Trigger execution by providing a lead edge to Exec bit
-                // opcUaRequestData.SetExecTrue();
-                // await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}", opcUaRequestData, cancellationToken);
-
                 // Monitor execution via response nodes until done or error
                 bool operationStarted = false;
                 failedReadAttempt = 0;
@@ -619,6 +612,7 @@ namespace opcUaConnectionTest.OPC
                 await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}", opcUaRequestData, cancellationToken);
 
                 // Reset state to be ready for next execution
+                /*
                 var resetResponseNode = new ResponseDto
                 {
                     Status = readyStatus,
@@ -626,6 +620,7 @@ namespace opcUaConnectionTest.OPC
                 };
                 byte[] opcUaResponseData = resetResponseNode.ToByteArray();
                 await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{responseBaseNode}", opcUaResponseData, cancellationToken);
+                */
             }
         }
 
