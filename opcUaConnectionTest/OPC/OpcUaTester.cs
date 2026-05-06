@@ -68,6 +68,7 @@ namespace opcUaConnectionTest.OPC
             await OpcUaConnectionTestWallE(cancellationToken);
             // await ExecuteWallECobotProgram(cancellationToken);
             await OpcUaConnectionTestEVE(cancellationToken);
+            await ExecuteFanucCobotProgram(cancellationToken);  
         }
 
         private static OpcUaApplication LoadOpcUaApplication()
@@ -419,13 +420,20 @@ namespace opcUaConnectionTest.OPC
                     await Task.Delay(1000, cancellationToken);
                 }
 
-                // Write request parameters
-                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}", opcUaRequestData, cancellationToken);
+                // Read the current request node to get the ExtensionObject TypeId (UDT structure)
+                var currentRequestData = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{requestBaseNode}");
+                if (currentRequestData.Value is not ExtensionObject currentExtObj)
+                    throw new Exception("Request node does not contain an ExtensionObject.");
+
+                // Write request parameters wrapped in an ExtensionObject matching the node's type
+                var writeExtObj = new ExtensionObject(currentExtObj.TypeId, opcUaRequestData);
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}", writeExtObj, cancellationToken);
 
                 // Trigger execution by providing a lead edge to Exec bit
-                opcUaRequestData.SetExecTrue();
-                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}", opcUaRequestData, cancellationToken);
-                
+                // opcUaRequestData.SetExecTrue();
+                var writeExtObjExec = new ExtensionObject(currentExtObj.TypeId, opcUaRequestData);
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}", writeExtObjExec, cancellationToken);
+
                 // Monitor execution via response nodes until done or error
                 bool operationStarted = false;
                 failedReadAttempt = 0;
