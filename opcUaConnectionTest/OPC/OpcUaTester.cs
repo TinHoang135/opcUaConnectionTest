@@ -66,7 +66,8 @@ namespace opcUaConnectionTest.OPC
             }
 
             await OpcUaConnectionTestWallE(cancellationToken);
-            await OpcUaConnectionTestEVE(cancellationToken);
+            await ExecuteWallECobotProgram(cancellationToken);
+            //await OpcUaConnectionTestEVE(cancellationToken);
         }
 
         private static OpcUaApplication LoadOpcUaApplication()
