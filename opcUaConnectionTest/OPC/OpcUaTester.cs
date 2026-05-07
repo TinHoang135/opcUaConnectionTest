@@ -385,6 +385,11 @@ namespace opcUaConnectionTest.OPC
             DataValue? opcUaDataFanucProgResponse;
             byte[] opcUaRequestData = request.ToByteArrayExecFalse();
 
+            // Read the current request node to get the ExtensionObject TypeId (UDT structure)
+            var currentRequestData = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{requestBaseNode}");
+            if (currentRequestData.Value is not ExtensionObject currentExtObj)
+                throw new Exception("Request node does not contain an ExtensionObject.");
+
             try
             {
                 // Read current state
@@ -417,13 +422,8 @@ namespace opcUaConnectionTest.OPC
                     {
                         throw new Exception("Failed reading Fanuc Cobot response data.");
                     }
-                    await Task.Delay(1000, cancellationToken);
+                    await Task.Delay(2000, cancellationToken);
                 }
-
-                // Read the current request node to get the ExtensionObject TypeId (UDT structure)
-                var currentRequestData = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{requestBaseNode}");
-                if (currentRequestData.Value is not ExtensionObject currentExtObj)
-                    throw new Exception("Request node does not contain an ExtensionObject.");
 
                 // Write request parameters wrapped in an ExtensionObject matching the node's type
                 var writeExtObj = new ExtensionObject(currentExtObj.TypeId, opcUaRequestData);
@@ -469,7 +469,7 @@ namespace opcUaConnectionTest.OPC
                     
                     if (failedReadAttempt >= 3) throw new Exception("Failed reading Fanuc Cobot response data.");
                     // Throttle
-                    await Task.Delay(1000, cancellationToken);
+                    await Task.Delay(2000, cancellationToken);
                 }
             }
             catch
@@ -481,8 +481,10 @@ namespace opcUaConnectionTest.OPC
             {
                 // Reset execution trigger bit
                 opcUaRequestData.SetExecFalse();
-                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}", opcUaRequestData, cancellationToken);
+                var writeExtObj = new ExtensionObject(currentExtObj.TypeId, opcUaRequestData);
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}", writeExtObj, cancellationToken);
 
+                /*
                 // Reset state to be ready for next execution
                 var resetResponseNode = new ResponseDto
                 {
@@ -491,6 +493,7 @@ namespace opcUaConnectionTest.OPC
                 };
                 byte[] opcUaResponseData = resetResponseNode.ToByteArray();
                 await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{responseBaseNode}", opcUaResponseData, cancellationToken);
+                */
             }
         }
 
@@ -520,6 +523,11 @@ namespace opcUaConnectionTest.OPC
             int failedReadAttempt = 0;
             DataValue? opcUaDataWallEProgResponse;
             byte[] opcUaRequestData = request.ToByteArrayExecFalse();
+
+            // Read the current request node to get the ExtensionObject TypeId (UDT structure)
+            var currentRequestData = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{requestBaseNode}");
+            if (currentRequestData.Value is not ExtensionObject currentExtObj)
+                throw new Exception("Request node does not contain an ExtensionObject.");
 
             try
             {
@@ -553,13 +561,8 @@ namespace opcUaConnectionTest.OPC
                     {
                         throw new Exception("Failed reading WallE Cobot response data.");
                     }
-                    await Task.Delay(1000, cancellationToken);
+                    await Task.Delay(2000, cancellationToken);
                 }
-
-                // Read the current request node to get the ExtensionObject TypeId (UDT structure)
-                var currentRequestData = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{requestBaseNode}");
-                if (currentRequestData.Value is not ExtensionObject currentExtObj)
-                    throw new Exception("Request node does not contain an ExtensionObject.");
 
                 // Write request parameters wrapped in an ExtensionObject matching the node's type
                 var writeExtObj = new ExtensionObject(currentExtObj.TypeId, opcUaRequestData);
@@ -605,7 +608,7 @@ namespace opcUaConnectionTest.OPC
 
                     if (failedReadAttempt >= 3) throw new Exception("Failed reading WallE Cobot response data.");
                     // Throttle
-                    await Task.Delay(1000, cancellationToken);
+                    await Task.Delay(2000, cancellationToken);
                 }
             }
             catch
@@ -617,10 +620,11 @@ namespace opcUaConnectionTest.OPC
             {
                 // Reset execution trigger bit
                 opcUaRequestData.SetExecFalse();
-                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}", opcUaRequestData, cancellationToken);
+                var writeExtObj = new ExtensionObject(currentExtObj.TypeId, opcUaRequestData);
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}", writeExtObj, cancellationToken);
 
-                // Reset state to be ready for next execution
                 /*
+                // Reset state to be ready for next execution
                 var resetResponseNode = new ResponseDto
                 {
                     Status = readyStatus,
@@ -659,8 +663,13 @@ namespace opcUaConnectionTest.OPC
             const int activeStatus = 2;
             const int doneStatus = 3;
             int failedReadAttempt = 0;
-            DataValue? statusDataValue;
-            DataValue? errorDataValue;
+            DataValue? opcUaDataTowerProgResponse;
+            byte[] opcUaRequestData = request.ToByteArrayExecFalse();
+
+            // Read the current request node to get the ExtensionObject TypeId (UDT structure)
+            var currentRequestData = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{requestBaseNode}");
+            if (currentRequestData.Value is not ExtensionObject currentExtObj)
+                throw new Exception("Request node does not contain an ExtensionObject.");
 
             try
             {
@@ -670,88 +679,80 @@ namespace opcUaConnectionTest.OPC
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    statusDataValue = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{responseBaseNode}/Status");
-                    errorDataValue = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{responseBaseNode}/Error");
-                    int? initialStatus = statusDataValue != null ? OpcInteraction.TryConvertToInt32(statusDataValue) : null;
-                    int? initialError = errorDataValue != null ? OpcInteraction.TryConvertToInt16(errorDataValue) : null;
-
-                    // Assert readiness
-                    if (initialStatus.HasValue && initialError.HasValue && initialStatus.Value == readyStatus && initialError.Value == 0)
-                        break;
-
-                    else
+                    // get data from the response node
+                    opcUaDataTowerProgResponse = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{responseBaseNode}");
+                    // Console.WriteLine($"EVE Cobot Program Response data: {DumpDataValue(opcUaDataWallEProgResponse)}");
+                    // decode the data
+                    if (opcUaDataTowerProgResponse.Value is ExtensionObject progResponseExtensionObject)
                     {
-                        if (failedReadAttempt >= 3)
+                        if (progResponseExtensionObject.Body is byte[] debugBytes)
                         {
-                            if (!initialStatus.HasValue || !initialError.HasValue) throw new Exception("Failed to read tower response state.");
-                            else if (initialStatus.Value != readyStatus) throw new Exception($"Tower not ready. Current status: {initialStatus.Value}.");
-                            else if (initialError.Value != 0) throw new Exception($"Tower reported error before execution. Error code: {initialError.Value}.");
-                            else throw new Exception("Unknown error.");
+                            ResponseDto decoded = debugBytes.ToResponseDto();
+                            Console.WriteLine($"Tower program response Status: {decoded.Status}");
+                            Console.WriteLine($"Tower program response Error: {decoded.Error}");
+                            // Assert readiness
+                            if (decoded.Status == readyStatus && decoded.Error == 0)
+                                break;
+                            else throw new Exception($"Tower not ready for operation. Status: {decoded.Status}. Error: {decoded.Error}."); ;
                         }
                         else failedReadAttempt++;
                     }
-                    // throttle
-                    await Task.Delay(1000, cancellationToken);
+                    else failedReadAttempt++;
+
+                    if (failedReadAttempt >= 3)
+                    {
+                        throw new Exception("Failed reading WallE Cobot response data.");
+                    }
+                    await Task.Delay(2000, cancellationToken);
                 }
 
-                // Write request parameters
-                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/Depth", request.Depth, cancellationToken);
-                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/InnerDiameter", request.InnerDiameter, cancellationToken);
-                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/OuterDiameter", request.OuterDiameter, cancellationToken);
-                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/Station", request.Station, cancellationToken);
-                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/Task", request.Task, cancellationToken);
-                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/TransferPoint", request.TransferPoint, cancellationToken);
-                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/Weight", request.Weight, cancellationToken);
+                // Write request parameters wrapped in an ExtensionObject matching the node's type
+                var writeExtObj = new ExtensionObject(currentExtObj.TypeId, opcUaRequestData);
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}", writeExtObj, cancellationToken);
 
                 // Trigger execution by providing a lead edge to Exec bit
-                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/Exec", false, cancellationToken);
-                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/Exec", true, cancellationToken);
+                // opcUaRequestData.SetExecTrue();
+                var writeExtObjExec = new ExtensionObject(currentExtObj.TypeId, opcUaRequestData);
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}", writeExtObjExec, cancellationToken);
 
                 // Monitor execution via response nodes until done or error
-                int? statusValue;
-                int? errorValue;
                 bool operationStarted = false;
                 failedReadAttempt = 0;
 
                 while (!cancellationToken.IsCancellationRequested)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-
-                    statusDataValue = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{responseBaseNode}/Status");
-                    errorDataValue = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{responseBaseNode}/Error");
-
-                    statusValue = statusDataValue != null ? OpcInteraction.TryConvertToInt32(statusDataValue) : null;
-                    errorValue = errorDataValue != null ? OpcInteraction.TryConvertToInt16(errorDataValue) : null;
-
-                    if (statusValue.HasValue && errorValue.HasValue)
+                    // get data from the response node
+                    opcUaDataTowerProgResponse = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{responseBaseNode}");
+                    // decode the data
+                    if (opcUaDataTowerProgResponse.Value is ExtensionObject progResponseExtensionObject)
                     {
-                        failedReadAttempt = 0;
-                        // check status value
-                        if (statusValue == doneStatus) break;
-                        else if (statusValue == errorStatus) throw new Exception($"Tower execution error: {errorValue}");
-                        else if (statusValue == activeStatus)
+                        if (progResponseExtensionObject.Body is byte[] debugBytes)
                         {
-                            operationStarted = true;
+                            ResponseDto decoded = debugBytes.ToResponseDto();
+                            failedReadAttempt = 0;
+                            if (decoded.Status == activeStatus)
+                            {
+                                operationStarted = true;
+                            }
+                            else if (decoded.Status == readyStatus)
+                            {
+                                if (operationStarted) throw new Exception("Unexpected Tower status: Cobot returns to Ready status during operation");
+                                else { }
+                            }
+                            else if (decoded.Status == doneStatus) break;
+                            else if (decoded.Status == errorStatus) throw new Exception($"Tower execution error: {decoded.Error}");
+                            else throw new Exception($"Unknown Tower status: {decoded.Status}");
                         }
-                        else if (statusValue == readyStatus)
-                        {
-                            if (operationStarted) throw new Exception("Unexpected Tower status: Tower returns to Ready status during operation");
-                            else { }
-                        }
-                        else throw new Exception($"Unkown Tower status: {statusValue}");
-                    }
-
-                    else
-                    {
-                        if (failedReadAttempt >= 3) throw new Exception("Failed reading Tower response state.");
                         else failedReadAttempt++;
                     }
+                    else failedReadAttempt++;
 
+                    if (failedReadAttempt >= 3) throw new Exception("Failed reading Tower response data.");
                     // Throttle
-                    await Task.Delay(1000, cancellationToken);
+                    await Task.Delay(2000, cancellationToken);
                 }
             }
-
             catch
             {
                 throw;
@@ -760,11 +761,158 @@ namespace opcUaConnectionTest.OPC
             finally
             {
                 // Reset execution trigger bit
-                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}/Exec", false, cancellationToken);
+                opcUaRequestData.SetExecFalse();
+                var writeExtObj = new ExtensionObject(currentExtObj.TypeId, opcUaRequestData);
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}", writeExtObj, cancellationToken);
 
+                /*
                 // Reset state to be ready for next execution
-                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{responseBaseNode}/Error", 0, cancellationToken);
-                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{responseBaseNode}/Status", readyStatus, cancellationToken);
+                var resetResponseNode = new ResponseDto
+                {
+                    Status = readyStatus,
+                    Error = 0
+                };
+                byte[] opcUaResponseData = resetResponseNode.ToByteArray();
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{responseBaseNode}", opcUaResponseData, cancellationToken);
+                */
+            }
+        }
+
+        protected async Task ExecuteSafetyZoneMuteProgram(CancellationToken cancellationToken = default)
+        {
+            // TODO: Replace these values with meaningful test values.
+            var request = new SafetyZoneProgramRequestDto
+            {
+                IntegrationVehicleId = "EVE_Gen2_000001",
+                // Bool Parameters
+                Mute = true,
+                // Int Parameters
+                Station = 14,
+                Task = 30
+            };
+
+            var opcServerConfiguration = OpcUaApplication.Servers.FirstOrDefault(server => server.IntegrationVehicleId == request.IntegrationVehicleId) ?? throw new Exception("OPC Server configuration for 'EVE_Gen2_000001' not found.");
+            var requestBaseNode = opcServerConfiguration.SafetyZoneMuteRequestBaseNodeId ?? throw new InvalidOperationException("SafetyZone program request base node ID is null.");
+            var responseBaseNode = opcServerConfiguration.SafetyZoneMuteResponseBaseNodeId ?? throw new InvalidOperationException("SafetyZone program response base node ID is null.");
+            string serverName = opcServerConfiguration.Name;
+
+            const int errorStatus = 0;
+            const int readyStatus = 1;
+            const int activeStatus = 2;
+            const int doneStatus = 3;
+            int failedReadAttempt = 0;
+            DataValue? opcUaDataSafetyZoneProgResponse;
+            byte[] opcUaRequestData = request.ToByteArrayExecFalse();
+
+            // Read the current request node to get the ExtensionObject TypeId (UDT structure)
+            var currentRequestData = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{requestBaseNode}");
+            if (currentRequestData.Value is not ExtensionObject currentExtObj)
+                throw new Exception("Request node does not contain an ExtensionObject.");
+
+            try
+            {
+                // Read current state
+                // Try a few times before throwing exception
+                while (!cancellationToken.IsCancellationRequested)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    // get data from the response node
+                    opcUaDataSafetyZoneProgResponse = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{responseBaseNode}");
+                    // Console.WriteLine($"EVE Cobot Program Response data: {DumpDataValue(opcUaDataWallEProgResponse)}");
+                    // decode the data
+                    if (opcUaDataSafetyZoneProgResponse.Value is ExtensionObject progResponseExtensionObject)
+                    {
+                        if (progResponseExtensionObject.Body is byte[] debugBytes)
+                        {
+                            ResponseDto decoded = debugBytes.ToResponseDto();
+                            Console.WriteLine($"Safety Zone program response Status: {decoded.Status}");
+                            Console.WriteLine($"Safety Zone program response Error: {decoded.Error}");
+                            // Assert readiness
+                            if (decoded.Status == readyStatus && decoded.Error == 0)
+                                break;
+                            else throw new Exception($"Safety Zone not ready for operation. Status: {decoded.Status}. Error: {decoded.Error}."); ;
+                        }
+                        else failedReadAttempt++;
+                    }
+                    else failedReadAttempt++;
+
+                    if (failedReadAttempt >= 3)
+                    {
+                        throw new Exception("Failed reading Safety Zone response data.");
+                    }
+                    await Task.Delay(2000, cancellationToken);
+                }
+
+                // Write request parameters wrapped in an ExtensionObject matching the node's type
+                var writeExtObj = new ExtensionObject(currentExtObj.TypeId, opcUaRequestData);
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}", writeExtObj, cancellationToken);
+
+                // Trigger execution by providing a lead edge to Exec bit
+                // opcUaRequestData.SetExecTrue();
+                var writeExtObjExec = new ExtensionObject(currentExtObj.TypeId, opcUaRequestData);
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}", writeExtObjExec, cancellationToken);
+
+                // Monitor execution via response nodes until done or error
+                bool operationStarted = false;
+                failedReadAttempt = 0;
+
+                while (!cancellationToken.IsCancellationRequested)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    // get data from the response node
+                    opcUaDataSafetyZoneProgResponse = await _opcUaConnectionManager.ReadNodeAsync(serverName, $"{responseBaseNode}");
+                    // decode the data
+                    if (opcUaDataSafetyZoneProgResponse.Value is ExtensionObject progResponseExtensionObject)
+                    {
+                        if (progResponseExtensionObject.Body is byte[] debugBytes)
+                        {
+                            ResponseDto decoded = debugBytes.ToResponseDto();
+                            failedReadAttempt = 0;
+                            if (decoded.Status == activeStatus)
+                            {
+                                operationStarted = true;
+                            }
+                            else if (decoded.Status == readyStatus)
+                            {
+                                if (operationStarted) throw new Exception("Unexpected Safety Zone status: Cobot returns to Ready status during operation");
+                                else { }
+                            }
+                            else if (decoded.Status == doneStatus) break;
+                            else if (decoded.Status == errorStatus) throw new Exception($"Safety Zone execution error: {decoded.Error}");
+                            else throw new Exception($"Unknown Safety Zone status: {decoded.Status}");
+                        }
+                        else failedReadAttempt++;
+                    }
+                    else failedReadAttempt++;
+
+                    if (failedReadAttempt >= 3) throw new Exception("Failed reading Safety Zone response data.");
+                    // Throttle
+                    await Task.Delay(2000, cancellationToken);
+                }
+            }
+            catch
+            {
+                throw;
+            }
+
+            finally
+            {
+                // Reset execution trigger bit
+                opcUaRequestData.SetExecFalse();
+                var writeExtObj = new ExtensionObject(currentExtObj.TypeId, opcUaRequestData);
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{requestBaseNode}", writeExtObj, cancellationToken);
+
+                /*
+                // Reset state to be ready for next execution
+                var resetResponseNode = new ResponseDto
+                {
+                    Status = readyStatus,
+                    Error = 0
+                };
+                byte[] opcUaResponseData = resetResponseNode.ToByteArray();
+                await _opcUaConnectionManager.WriteNodeAsync(serverName, $"{responseBaseNode}", opcUaResponseData, cancellationToken);
+                */
             }
         }
 

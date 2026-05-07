@@ -76,13 +76,13 @@
             return new TowerProgramRequestDto
             {
                 IntegrationVehicleId = integrationVehicleId,
-                Weight = BitConverter.ToInt32(bytes, WeightOffset),
-                Depth = BitConverter.ToInt32(bytes, DepthOffset),
+                Weight = BitConverter.ToSingle(bytes, WeightOffset),
+                Depth = BitConverter.ToSingle(bytes, DepthOffset),
                 Station = BitConverter.ToInt32(bytes, StationOffset),
                 Task = BitConverter.ToInt32(bytes, TaskOffset),
                 TransferPoint = BitConverter.ToInt32(bytes, TransferPointOffset),
-                InnerDiameter = BitConverter.ToInt32(bytes, InnerDiameterOffset),
-                OuterDiameter = BitConverter.ToInt32(bytes, OuterDiameterOffset)
+                InnerDiameter = BitConverter.ToSingle(bytes, InnerDiameterOffset),
+                OuterDiameter = BitConverter.ToSingle(bytes, OuterDiameterOffset)
             };
         }
     }

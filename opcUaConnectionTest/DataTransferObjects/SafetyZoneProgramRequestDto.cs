@@ -58,7 +58,7 @@ namespace PG.LIFT.Integrations.EMMS.DataTransferObjects
             return new SafetyZoneProgramRequestDto
             {
                 IntegrationVehicleId = integrationVehicleId,
-                Mute = bytes[MuteOffset] == 1 ? true : false,
+                Mute = bytes[MuteOffset] == (byte)1 ? true : false,
                 Station = BitConverter.ToInt32(bytes, StationOffset),
                 Task = BitConverter.ToInt32(bytes, TaskOffset)
             };
