@@ -8,7 +8,7 @@ using PG.LIFT.Integrations.EMMS.DataTransferObjects;
 
 namespace opcUaConnectionTest.OPC
 {
-    public class OpcUaTester
+    public class OpcUaTester : IAsyncDisposable
     {
         #region Fields
 
@@ -16,10 +16,10 @@ namespace opcUaConnectionTest.OPC
         private readonly TimeSpan _maxDelay = TimeSpan.FromMinutes(1);
         // private readonly TimeSpan _reconcileDelay = TimeSpan.FromSeconds(10);
 
-        private IOpcUaConnectionManager _opcUaConnectionManager;
+        private readonly IOpcUaConnectionManager _opcUaConnectionManager;
 
-        private ILoggerFactory _loggerFactory;
-        private ILogger<OpcUaTester> _logger;
+        private readonly ILoggerFactory _loggerFactory;
+        private readonly ILogger<OpcUaTester> _logger;
 
         #endregion Fields
 
@@ -41,6 +41,19 @@ namespace opcUaConnectionTest.OPC
         }
 
         #endregion Constructors
+
+        #region IAsyncDisposable
+
+        public async ValueTask DisposeAsync()
+        {
+            if (_opcUaConnectionManager is IAsyncDisposable disposable)
+            {
+                _logger.LogInformation("Disposing OPC UA connection manager and closing sessions...");
+                await disposable.DisposeAsync();
+            }
+        }
+
+        #endregion IAsyncDisposable
 
         #region Methods
 
