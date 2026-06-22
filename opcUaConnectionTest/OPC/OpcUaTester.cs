@@ -78,9 +78,9 @@ namespace opcUaConnectionTest.OPC
                 }
             }
 
-            await OpcUaConnectionTestWallE(cancellationToken);
-            await ExecuteWallECobotProgram(cancellationToken);
-            // await OpcUaConnectionTestEVE(cancellationToken);
+            // await OpcUaConnectionTestWallE(cancellationToken);
+            // await ExecuteWallECobotProgram(cancellationToken);
+            await OpcUaConnectionTestEVE(cancellationToken);
             // await ExecuteFanucCobotProgram(cancellationToken);
             // await ExecuteTowerProgram(cancellationToken);   
             // await ExecuteSafetyZoneMuteProgram(cancellationToken);
