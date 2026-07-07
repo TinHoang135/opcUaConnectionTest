@@ -1,4 +1,4 @@
-﻿namespace PG.LIFT.Integrations.EMMS.Services
+﻿namespace unwindRollRuntime.Services
 {
     public static class ServiceConstants
     {

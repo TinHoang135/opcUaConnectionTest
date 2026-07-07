@@ -31,25 +31,29 @@ class Program
             cts.Cancel();
         };
 
-        // create data object
-        SharedDataObject sharedDataObject = new SharedDataObject();
-
-        // create lineUnwinds object
-        LineUnwinds lineUnwinds = LoadLineUnwinds();
-
-        // create zmqSubcriberData object
-        ZmqSubscriberData zmqSubscriberData = LoadZmqSubscriberData();
-
-        // create zmqSubcriber
-        ZmqSubscriber zmqSubscriber = new ZmqSubscriber(
-            logger: loggerFactory.CreateLogger<ZmqSubscriber>(),
-            config: zmqSubscriberData,
-            sharedData: sharedDataObject);
-
-        await using var unwindRollRunTimeCollector = new UnwindRollRunTimeCollector(loggerFactory);
-
         try
         {
+            // create data object
+            SharedDataObject sharedDataObject = new();
+
+            // create lineUnwinds object
+            LineUnwinds lineUnwinds = LoadLineUnwinds();
+
+            // create zmqSubcriberData object
+            ZmqSubscriberData zmqSubscriberData = LoadZmqSubscriberData();
+
+            // create zmqSubcriber
+            ZmqSubscriber zmqSubscriber = new(
+                logger: loggerFactory.CreateLogger<ZmqSubscriber>(),
+                config: zmqSubscriberData,
+                sharedData: sharedDataObject);
+
+            await using var unwindRollRunTimeCollector = new UnwindRollRunTimeCollector(
+                logger: loggerFactory.CreateLogger<UnwindRollRunTimeCollector>(),
+                sharedDataObject: sharedDataObject,
+                zmqSubscriber: zmqSubscriber,
+                lineUnwinds: lineUnwinds);
+
             await unwindRollRunTimeCollector.RunAsync(cts.Token);
         }
         catch (OperationCanceledException) when (cts.IsCancellationRequested)
@@ -61,7 +65,6 @@ class Program
         // which closes all OPC UA sessions on the server.
         logger.LogInformation("Shutdown complete.");
     }
-
 
     private static LineUnwinds LoadLineUnwinds()
     {

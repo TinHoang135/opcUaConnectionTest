@@ -27,11 +27,11 @@ namespace unwindRollRuntime.ZMQ
 
         public ZmqSubscriber(
             ILogger<ZmqSubscriber> logger,
-            IOptions<ZmqSubscriberData> config,
+            ZmqSubscriberData config,
             SharedDataObject sharedData)
         {
             _logger = logger;
-            _zmqSubscriberData = config.Value;
+            _zmqSubscriberData = config;
             _dataObject = sharedData;
         }
 

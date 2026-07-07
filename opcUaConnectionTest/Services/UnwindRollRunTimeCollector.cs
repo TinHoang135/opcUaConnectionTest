@@ -17,12 +17,12 @@ namespace unwindRollRuntime.Services
             ILogger<UnwindRollRunTimeCollector> logger,
             SharedDataObject sharedDataObject,
             ZmqSubscriber zmqSubscriber,
-            IOptions<LineUnwinds> lineUnwinds)
+            LineUnwinds lineUnwinds)
         {
             _logger = logger;
             _sharedDataObject = sharedDataObject;
             _zmqSubscriber = zmqSubscriber;
-            _lineUnwinds = lineUnwinds.Value;
+            _lineUnwinds = lineUnwinds;
         }
 
         public ValueTask DisposeAsync()
