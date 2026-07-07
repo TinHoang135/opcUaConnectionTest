@@ -22,7 +22,7 @@ namespace unwindRollRuntime.ZMQ
     public class ZmqSubscriber
     {
         private readonly ILogger<ZmqSubscriber> _logger;
-        private readonly ZmqSubscriberData _config;
+        private readonly ZmqSubscriberData _zmqSubscriberData;
         private readonly SharedDataObject _dataObject;
 
         public ZmqSubscriber(
@@ -31,7 +31,7 @@ namespace unwindRollRuntime.ZMQ
             SharedDataObject sharedData)
         {
             _logger = logger;
-            _config = config.Value;
+            _zmqSubscriberData = config.Value;
             _dataObject = sharedData;
         }
 
@@ -61,14 +61,14 @@ namespace unwindRollRuntime.ZMQ
 
             subscriber.Options.ReceiveHighWatermark = 1000000;
 
-            foreach (var topic in _config.ZmqTopics)
+            foreach (var topic in _zmqSubscriberData.ZmqTopics)
             {
                 subscriber.Subscribe(topic.ReferenceName);
             }
 
-            subscriber.Connect(_config.EndPoint);
+            subscriber.Connect(_zmqSubscriberData.EndPoint);
 
-            _logger.LogInformation("Connected to ZMQ at {EndPoint}", _config.EndPoint);
+            _logger.LogInformation("Connected to ZMQ at {EndPoint}", _zmqSubscriberData.EndPoint);
 
             while (!token.IsCancellationRequested)
             {

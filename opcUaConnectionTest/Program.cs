@@ -1,5 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using unwindRollRuntime.Unwind;
 using unwindRollRuntime.ZMQ;
+using unwindRollRuntime.Services;
 
 class Program
 {
@@ -41,5 +44,28 @@ class Program
         // DisposeAsync is called automatically by 'await using',
         // which closes all OPC UA sessions on the server.
         logger.LogInformation("Shutdown complete.");
+    }
+
+
+    private static LineUnwinds LoadLineUnwinds()
+    {
+        var configuration = new ConfigurationBuilder()
+            .SetBasePath(AppContext.BaseDirectory)
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
+            .Build();
+
+        return configuration.GetSection("Unwinds").Get<LineUnwinds>()
+            ?? throw new InvalidOperationException("Unwinds section is missing from appsettings.json.");
+    }
+
+    private static ZmqSubscriberData LoadZmqSubscriber()
+    {
+        var configuration = new ConfigurationBuilder()
+            .SetBasePath(AppContext.BaseDirectory)
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
+            .Build();
+
+        return configuration.GetSection("ZmqSubscriberData").Get<ZmqSubscriberData>()
+            ?? throw new InvalidOperationException("zmqSubscriber section is missing from appsettings.json.");
     }
 }
