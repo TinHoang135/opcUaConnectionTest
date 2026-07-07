@@ -11,7 +11,7 @@ class Program
         });
 
         ILogger<Program> logger = loggerFactory.CreateLogger<Program>();
-        logger.LogDebug("Starting OPC UA connection test...");
+        logger.LogDebug("Starting unwind roll run-time collection...");
 
         using var cts = new CancellationTokenSource();
 
@@ -27,15 +27,15 @@ class Program
             cts.Cancel();
         };
 
-        await using var opcUaTester = new OpcUaTester(loggerFactory);
+        await using var unwindRollRunTimeCollector = new UnwindRollRunTimeCollector(loggerFactory);
 
         try
         {
-            await opcUaTester.RunAsync(cts.Token);
+            await unwindRollRunTimeCollector.RunAsync(cts.Token);
         }
         catch (OperationCanceledException) when (cts.IsCancellationRequested)
         {
-            logger.LogInformation("OPC UA connection test cancelled.");
+            logger.LogInformation("Unwind roll run-time collection cancelled.");
         }
 
         // DisposeAsync is called automatically by 'await using',

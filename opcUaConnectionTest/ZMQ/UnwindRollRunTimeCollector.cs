@@ -3,12 +3,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using Opc.Ua;
-using opcUaConnectionTest.DataTransferObjects;
-using PG.LIFT.Integrations.EMMS.DataTransferObjects;
 
 namespace opcUaConnectionTest.OPC
 {
-    public class OpcUaTester : IAsyncDisposable
+    public class UnwindRollRunTimeCollector : IAsyncDisposable
     {
         #region Fields
 
@@ -19,7 +17,7 @@ namespace opcUaConnectionTest.OPC
         private readonly IOpcUaConnectionManager _opcUaConnectionManager;
 
         private readonly ILoggerFactory _loggerFactory;
-        private readonly ILogger<OpcUaTester> _logger;
+        private readonly ILogger<UnwindRollRunTimeCollector> _logger;
 
         #endregion Fields
 
@@ -31,10 +29,10 @@ namespace opcUaConnectionTest.OPC
 
         #region Constructors
 
-        public OpcUaTester(ILoggerFactory loggerFactory)
+        public UnwindRollRunTimeCollector(ILoggerFactory loggerFactory)
         {
             _loggerFactory = loggerFactory;
-            _logger = _loggerFactory.CreateLogger<OpcUaTester>();
+            _logger = _loggerFactory.CreateLogger<UnwindRollRunTimeCollector>();
 
             OpcUaApplication = LoadOpcUaApplication();
             _opcUaConnectionManager = new OpcUaConnectionManager(OpcUaApplication, _loggerFactory.CreateLogger<OpcUaConnectionManager>(), _loggerFactory);
