@@ -19,6 +19,7 @@
 		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="11.0.0-preview.3.26207.106" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="11.0.0-preview.3.26207.106" />
 		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="11.0.0-preview.3.26207.106" />
+		<PackageReference Include="NetMQ" Version="4.0.4.2" />
 		<PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client" Version="1.5.378.134" />
 		<PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Core" Version="1.5.378.134" />
 	</ItemGroup>
