@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using unwindRollRuntime.Unwind;
 using unwindRollRuntime.ZMQ;
 using unwindRollRuntime.Services;
@@ -30,6 +31,21 @@ class Program
             cts.Cancel();
         };
 
+        // create data object
+        SharedDataObject sharedDataObject = new SharedDataObject();
+
+        // create lineUnwinds object
+        LineUnwinds lineUnwinds = LoadLineUnwinds();
+
+        // create zmqSubcriberData object
+        ZmqSubscriberData zmqSubscriberData = LoadZmqSubscriberData();
+
+        // create zmqSubcriber
+        ZmqSubscriber zmqSubscriber = new ZmqSubscriber(
+            logger: loggerFactory.CreateLogger<ZmqSubscriber>(),
+            config: zmqSubscriberData,
+            sharedData: sharedDataObject);
+
         await using var unwindRollRunTimeCollector = new UnwindRollRunTimeCollector(loggerFactory);
 
         try
@@ -58,7 +74,7 @@ class Program
             ?? throw new InvalidOperationException("Unwinds section is missing from appsettings.json.");
     }
 
-    private static ZmqSubscriberData LoadZmqSubscriber()
+    private static ZmqSubscriberData LoadZmqSubscriberData()
     {
         var configuration = new ConfigurationBuilder()
             .SetBasePath(AppContext.BaseDirectory)
@@ -66,6 +82,6 @@ class Program
             .Build();
 
         return configuration.GetSection("ZmqSubscriberData").Get<ZmqSubscriberData>()
-            ?? throw new InvalidOperationException("zmqSubscriber section is missing from appsettings.json.");
+            ?? throw new InvalidOperationException("ZmqSubscriberData section is missing from appsettings.json.");
     }
 }

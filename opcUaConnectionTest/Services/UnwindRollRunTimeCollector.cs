@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using PG.LIFT.Integrations.EMMS.Services;
+using Microsoft.Extensions.Options;
 using unwindRollRuntime.Unwind;
 using unwindRollRuntime.ZMQ;
 
@@ -17,12 +17,12 @@ namespace unwindRollRuntime.Services
             ILogger<UnwindRollRunTimeCollector> logger,
             SharedDataObject sharedDataObject,
             ZmqSubscriber zmqSubscriber,
-            LineUnwinds lineUnwinds)
+            IOptions<LineUnwinds> lineUnwinds)
         {
             _logger = logger;
             _sharedDataObject = sharedDataObject;
             _zmqSubscriber = zmqSubscriber;
-            _lineUnwinds = lineUnwinds;
+            _lineUnwinds = lineUnwinds.Value;
         }
 
         public ValueTask DisposeAsync()
