@@ -1,4 +1,4 @@
-﻿namespace opcUaConnectionTest.OPC
+﻿namespace unwindRollRuntime.ZMQ
 {
     public sealed class OpcUaApplication
     {
