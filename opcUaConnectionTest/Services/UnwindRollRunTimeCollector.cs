@@ -106,23 +106,15 @@ namespace unwindRollRuntime.Services
             const double lineToRun = 12;
             const double lineToThread = 10;
             double productionTimeInSeconds = 0;
-            double lineUpTimeInSeconds = 0;
 
             while (!cancellationToken.IsCancellationRequested)
             {
                 await Task.Delay(elapsedTimeInSeconds * 1000);
 
                 productionTimeInSeconds += elapsedTimeInSeconds;
-
-                if (_sharedDataObject.LineRunning)
-                {
-                    lineUpTimeInSeconds += elapsedTimeInSeconds;
-                }
-
                 if (productionTimeInSeconds % 900 == 0)
                 {
                     _logger.LogInformation($"Current production time is {productionTimeInSeconds} seconds.");
-                    _logger.LogInformation($"Current line up time is {lineUpTimeInSeconds} seconds.Line PR is {Math.Round(lineUpTimeInSeconds * 100 / productionTimeInSeconds, 2)}%");
                 }
 
                 // implement the logic to recognize the first scans, and not triggered ARL tasks during these first scans  
@@ -162,7 +154,6 @@ namespace unwindRollRuntime.Services
                         AQL_Unwind.RollAIsActive = _sharedDataObject.ZmqData[ServiceConstants.zmq_Topic_AQL_Roll_A_Active];
                         if (firstScans == false)
                         {
-                            AQL_Unwind.HasSpliced = true;
                             _logger.LogInformation($"{AQL_Unwind.Name} has spliced.");
                         }
                     }
@@ -175,7 +166,6 @@ namespace unwindRollRuntime.Services
                         CC_Unwind.RollAIsActive = _sharedDataObject.ZmqData[ServiceConstants.zmq_Topic_CC_Roll_A_Active];
                         if (firstScans == false)
                         {
-                            CC_Unwind.HasSpliced = true;
                             _logger.LogInformation($"{CC_Unwind.Name} has spliced.");
                         }
                     }
@@ -188,7 +178,6 @@ namespace unwindRollRuntime.Services
                         DL_Unwind.RollAIsActive = _sharedDataObject.ZmqData[ServiceConstants.zmq_Topic_DS_Roll_A_Active];
                         if (firstScans == false)
                         {
-                            DL_Unwind.HasSpliced = true;
                             _logger.LogInformation($"{DL_Unwind.Name} has spliced.");
                         }
                     }
@@ -201,7 +190,6 @@ namespace unwindRollRuntime.Services
                         TS_Unwind.RollAIsActive = _sharedDataObject.ZmqData[ServiceConstants.zmq_Topic_TS_Roll_A_Active];
                         if (firstScans == false)
                         {
-                            TS_Unwind.HasSpliced = true;
                             _logger.LogInformation($"{TS_Unwind.Name} has spliced.");
                         }
                     }
@@ -214,7 +202,6 @@ namespace unwindRollRuntime.Services
                         Cuff_Unwind.RollAIsActive = _sharedDataObject.ZmqData[ServiceConstants.zmq_Topic_Cuff_Roll_A_Active];
                         if (firstScans == false)
                         {
-                            Cuff_Unwind.HasSpliced = true;
                             _logger.LogInformation($"{Cuff_Unwind.Name} has spliced.");
                         }
                     }
@@ -227,7 +214,6 @@ namespace unwindRollRuntime.Services
                         IBU_Unwind.RollAIsActive = _sharedDataObject.ZmqData[ServiceConstants.zmq_Topic_IBU_Roll_A_Active];
                         if (firstScans == false)
                         {
-                            IBU_Unwind.HasSpliced = true;
                             _logger.LogInformation($"{IBU_Unwind.Name} has spliced.");
                         }
                     }
@@ -240,7 +226,6 @@ namespace unwindRollRuntime.Services
                         OBU_Unwind.RollAIsActive = _sharedDataObject.ZmqData[ServiceConstants.zmq_Topic_OBU_Roll_A_Active];
                         if (firstScans == false)
                         {
-                            OBU_Unwind.HasSpliced = true;
                             _logger.LogInformation($"{OBU_Unwind.Name} has spliced.");
                         }
                     }
