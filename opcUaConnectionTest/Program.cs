@@ -48,7 +48,7 @@ class Program
 
             // create zmqSubcriberData object
             ZmqSubscriberData zmqSubscriberData = configuration.GetSection("ZmqSubscriberData").Get<ZmqSubscriberData>()
-                ?? throw new InvalidOperationException("ZmqSubscriberData section is missing from appsettings.json."); ;
+                ?? throw new InvalidOperationException("ZmqSubscriberData section is missing from appsettings.json.");
 
             // create zmqSubcriber
             ZmqSubscriber zmqSubscriber = new(
@@ -64,12 +64,12 @@ class Program
             // Launch the tasks
             Task zmqSubscriberTask = Task.Run(() => zmqSubscriber.RunZmqTask(cts.Token));
 
-            Task unwindRollRunTimeAnalyzer = unwindRollRunTimeCollector.UnwindRollRunTimeAnalyzerTask(cts.Token);
+            Task unwindRollRunTimeAnalyzerTask = unwindRollRunTimeCollector.UnwindRollRunTimeAnalyzer(cts.Token);
 
             var tasks = new List<Task>
                 {
                     zmqSubscriberTask,
-                    unwindRollRunTimeAnalyzer
+                    unwindRollRunTimeAnalyzerTask
                 };
 
             // Monitor until all terminate or cancellation requested
@@ -82,12 +82,10 @@ class Program
                 {
                     logger.LogInformation("ZMQ subscriber stopped.");
                 }
-
-                else if (finishedTask == unwindRollRunTimeAnalyzer)
+                else
                 {
                     logger.LogInformation("Unwind roll run time analyzer task stopped.");
                 }
-
                 // Propagate any exceptions
                 await finishedTask;
             }

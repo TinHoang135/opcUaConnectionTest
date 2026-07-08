@@ -30,7 +30,7 @@ namespace unwindRollRuntime.Services
 
 
         #region Methods
-        public async Task UnwindRollRunTimeAnalyzerTask(CancellationToken cancellationToken = default)
+        public async Task UnwindRollRunTimeAnalyzer(CancellationToken cancellationToken = default)
         {
             Unwind.Unwind AQL_Unwind = _lineUnwinds.Unwinds.FirstOrDefault(unwind => unwind.Name == "AQL") ?? throw new Exception(" AQL Unwind has not been configured");
             Unwind.Unwind CC_Unwind = _lineUnwinds.Unwinds.FirstOrDefault(unwind => unwind.Name == "CC") ?? throw new Exception(" NWCC Unwind has not been configured");
