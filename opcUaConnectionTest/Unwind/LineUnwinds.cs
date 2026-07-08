@@ -11,11 +11,12 @@
     {
         // Basic properties
         public required string Name { get; set; }
-        public required bool HasSpliced { get; set; } = false;
+        public bool HasSpliced { get; set; } = false;
 
         // Roll parameters
-        public required double RollAIsActive { get; set; } = 0;
-        public required double RollACurrentDiameter { get; set; } = 1000; // mm
-        public required double RollBCurrentDiameter { get; set; } = 1000; // mm
+        public DateTimeOffset? CurrentRollStartTime { get; set; } = null;
+        public double RollAIsActive { get; set; } = 0;
+        public double RollACurrentDiameter { get; set; } = 1000; // mm
+        public double RollBCurrentDiameter { get; set; } = 1000; // mm
     }
 }
