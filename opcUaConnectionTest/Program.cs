@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using unwindRollRuntime.Unwind;
 using unwindRollRuntime.ZMQ;
 using unwindRollRuntime.Services;

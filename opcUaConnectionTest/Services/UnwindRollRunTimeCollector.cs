@@ -97,13 +97,12 @@ namespace unwindRollRuntime.Services
                         AQL_Unwind.RollAIsActive = _sharedDataObject.ZmqData[ServiceConstants.zmq_Topic_AQL_Roll_A_Active];
                         if (firstScans == false)
                         {
-                            _logger.LogInformation("{Unwind} has spliced.", AQL_Unwind.Name);
                             if (AQL_Unwind.CurrentRollStartTime is not null)
                             {
                                 rollRunTime = DateTimeOffset.UtcNow - AQL_Unwind.CurrentRollStartTime.Value;
 
                                 _logger.LogInformation(
-                                    "{Unwind} roll run time was {Runtime}",
+                                    "{Unwind} has spliced. Roll run time was {Runtime}",
                                     AQL_Unwind.Name,
                                     rollRunTime);
                             }
@@ -124,13 +123,12 @@ namespace unwindRollRuntime.Services
                         CC_Unwind.RollAIsActive = _sharedDataObject.ZmqData[ServiceConstants.zmq_Topic_CC_Roll_A_Active];
                         if (firstScans == false)
                         {
-                            _logger.LogInformation("{Unwind} has spliced.", CC_Unwind.Name);
                             if (CC_Unwind.CurrentRollStartTime is not null)
                             {
                                 rollRunTime = DateTimeOffset.UtcNow - CC_Unwind.CurrentRollStartTime.Value;
 
                                 _logger.LogInformation(
-                                    "{Unwind} roll run time was {Runtime}",
+                                    "{Unwind} has spliced. Roll run time was {Runtime}",
                                     CC_Unwind.Name,
                                     rollRunTime);
                             }
@@ -151,13 +149,12 @@ namespace unwindRollRuntime.Services
                         DL_Unwind.RollAIsActive = _sharedDataObject.ZmqData[ServiceConstants.zmq_Topic_DS_Roll_A_Active];
                         if (firstScans == false)
                         {
-                            _logger.LogInformation("{Unwind} has spliced.", DL_Unwind.Name);
                             if (DL_Unwind.CurrentRollStartTime is not null)
                             {
                                 rollRunTime = DateTimeOffset.UtcNow - DL_Unwind.CurrentRollStartTime.Value;
 
                                 _logger.LogInformation(
-                                    "{Unwind} roll run time was {Runtime}",
+                                    "{Unwind} has spliced. Rroll run time was {Runtime}",
                                     DL_Unwind.Name,
                                     rollRunTime);
                             }
@@ -178,13 +175,12 @@ namespace unwindRollRuntime.Services
                         TS_Unwind.RollAIsActive = _sharedDataObject.ZmqData[ServiceConstants.zmq_Topic_TS_Roll_A_Active];
                         if (firstScans == false)
                         {
-                            _logger.LogInformation("{Unwind} has spliced.", TS_Unwind.Name);
                             if (TS_Unwind.CurrentRollStartTime is not null)
                             {
                                 rollRunTime = DateTimeOffset.UtcNow - TS_Unwind.CurrentRollStartTime.Value;
 
                                 _logger.LogInformation(
-                                    "{Unwind} roll run time was {Runtime}",
+                                    "{Unwind} has spliced. Roll run time was {Runtime}",
                                     TS_Unwind.Name,
                                     rollRunTime);
                             }
@@ -205,13 +201,12 @@ namespace unwindRollRuntime.Services
                         Cuff_Unwind.RollAIsActive = _sharedDataObject.ZmqData[ServiceConstants.zmq_Topic_Cuff_Roll_A_Active];
                         if (firstScans == false)
                         {
-                            _logger.LogInformation("{Unwind} has spliced.", Cuff_Unwind.Name);
                             if (Cuff_Unwind.CurrentRollStartTime is not null)
                             {
                                 rollRunTime = DateTimeOffset.UtcNow - Cuff_Unwind.CurrentRollStartTime.Value;
 
                                 _logger.LogInformation(
-                                    "{Unwind} roll run time was {Runtime}",
+                                    "{Unwind} has spliced. Roll run time was {Runtime}",
                                     Cuff_Unwind.Name,
                                     rollRunTime);
                             }
@@ -232,13 +227,12 @@ namespace unwindRollRuntime.Services
                         IBU_Unwind.RollAIsActive = _sharedDataObject.ZmqData[ServiceConstants.zmq_Topic_IBU_Roll_A_Active];
                         if (firstScans == false)
                         {
-                            _logger.LogInformation("{Unwind} has spliced.", IBU_Unwind.Name);
                             if (IBU_Unwind.CurrentRollStartTime is not null)
                             {
                                 rollRunTime = DateTimeOffset.UtcNow - IBU_Unwind.CurrentRollStartTime.Value;
 
                                 _logger.LogInformation(
-                                    "{Unwind} roll run time was {Runtime}",
+                                    "{Unwind} has spliced. Roll run time was {Runtime}",
                                     IBU_Unwind.Name,
                                     rollRunTime);
                             }
@@ -258,13 +252,12 @@ namespace unwindRollRuntime.Services
                         OBU_Unwind.RollAIsActive = _sharedDataObject.ZmqData[ServiceConstants.zmq_Topic_OBU_Roll_A_Active];
                         if (firstScans == false)
                         {
-                            _logger.LogInformation("{Unwind} has spliced.", OBU_Unwind.Name);
                             if (OBU_Unwind.CurrentRollStartTime is not null)
                             {
                                 rollRunTime = DateTimeOffset.UtcNow - OBU_Unwind.CurrentRollStartTime.Value;
 
                                 _logger.LogInformation(
-                                    "{Unwind} roll run time was {Runtime}",
+                                    "{Unwind} has spliced. Roll run time was {Runtime}",
                                     OBU_Unwind.Name,
                                     rollRunTime);
                             }
