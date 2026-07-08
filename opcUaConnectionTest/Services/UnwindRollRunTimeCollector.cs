@@ -9,19 +9,16 @@ namespace unwindRollRuntime.Services
     {
         private readonly ILogger<UnwindRollRunTimeCollector> _logger;
         private readonly SharedDataObject _sharedDataObject;
-        private readonly ZmqSubscriber _zmqSubscriber;
         private readonly LineUnwinds _lineUnwinds;
 
         #region Constructors
         public UnwindRollRunTimeCollector(
             ILogger<UnwindRollRunTimeCollector> logger,
             SharedDataObject sharedDataObject,
-            ZmqSubscriber zmqSubscriber,
             LineUnwinds lineUnwinds)
         {
             _logger = logger;
             _sharedDataObject = sharedDataObject;
-            _zmqSubscriber = zmqSubscriber;
             _lineUnwinds = lineUnwinds;
         }
 
@@ -33,57 +30,7 @@ namespace unwindRollRuntime.Services
 
 
         #region Methods
-        public async Task RunAsync(CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                _ = Task.Run(async () =>
-                {
-                    // Launch the three main tasks
-                    Task zmqSubscriberTask = Task.Run(() => _zmqSubscriber.RunAsync(cancellationToken));
-
-                    // Task glueLoadingPlannerTask = _espressoMissionPlanningService.Value.GlueLoadingMissionPlannerAsync(cancellationToken);
-
-                    Task unwindRollRunTimeAnalyzer = UnwindRollRunTimeAnalyzer(cancellationToken);
-
-                    var tasks = new List<Task>
-                    {
-                        zmqSubscriberTask,
-                        unwindRollRunTimeAnalyzer
-                    };
-
-                    // Monitor until all terminate or cancellation requested
-                    while (tasks.Count > 0)
-                    {
-                        Task finishedTask = await Task.WhenAny(tasks);
-                        tasks.Remove(finishedTask);
-
-                        if (finishedTask == zmqSubscriberTask)
-                        {
-                            Console.WriteLine("ZMQ subscriber stopped.");
-                        }
-
-                        else if (finishedTask == unwindRollRunTimeAnalyzer)
-                        {
-                            Console.WriteLine("Unwind roll run time analyzer task stopped.");
-                        }
-
-                        // Propagate any exceptions
-                        await finishedTask;
-                    }
-                }, cancellationToken);
-            }
-
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to initialize Service");
-            }
-
-            // immediately return so startup can continue
-            return;
-        }
-
-        public async Task UnwindRollRunTimeAnalyzer(CancellationToken cancellationToken = default)
+        public async Task UnwindRollRunTimeAnalyzerTask(CancellationToken cancellationToken = default)
         {
             Unwind.Unwind AQL_Unwind = _lineUnwinds.Unwinds.FirstOrDefault(unwind => unwind.Name == "AQL") ?? throw new Exception(" AQL Unwind has not been configured");
             Unwind.Unwind CC_Unwind = _lineUnwinds.Unwinds.FirstOrDefault(unwind => unwind.Name == "CC") ?? throw new Exception(" NWCC Unwind has not been configured");

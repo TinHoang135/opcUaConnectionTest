@@ -35,7 +35,7 @@ namespace unwindRollRuntime.ZMQ
             _dataObject = sharedData;
         }
 
-        public async Task RunAsync(CancellationToken stoppingToken)
+        public async Task RunZmqTask(CancellationToken stoppingToken)
         {
             _logger.LogInformation("ZMQ Subscriber starting...");
 

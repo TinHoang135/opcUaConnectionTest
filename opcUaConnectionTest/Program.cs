@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using unwindRollRuntime.Unwind;
 using unwindRollRuntime.ZMQ;
 using unwindRollRuntime.Services;
+using System.Threading;
 
 class Program
 {
@@ -36,11 +37,18 @@ class Program
             // create data object
             SharedDataObject sharedDataObject = new();
 
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(AppContext.BaseDirectory)
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
+                .Build();
+
             // create lineUnwinds object
-            LineUnwinds lineUnwinds = LoadLineUnwinds();
+            LineUnwinds lineUnwinds = configuration.GetSection("Unwinds").Get<LineUnwinds>()
+                ?? throw new InvalidOperationException("Unwinds section is missing from appsettings.json.");
 
             // create zmqSubcriberData object
-            ZmqSubscriberData zmqSubscriberData = LoadZmqSubscriberData();
+            ZmqSubscriberData zmqSubscriberData = configuration.GetSection("ZmqSubscriberData").Get<ZmqSubscriberData>()
+                ?? throw new InvalidOperationException("ZmqSubscriberData section is missing from appsettings.json."); ;
 
             // create zmqSubcriber
             ZmqSubscriber zmqSubscriber = new(
@@ -51,10 +59,38 @@ class Program
             await using var unwindRollRunTimeCollector = new UnwindRollRunTimeCollector(
                 logger: loggerFactory.CreateLogger<UnwindRollRunTimeCollector>(),
                 sharedDataObject: sharedDataObject,
-                zmqSubscriber: zmqSubscriber,
                 lineUnwinds: lineUnwinds);
 
-            await unwindRollRunTimeCollector.RunAsync(cts.Token);
+            // Launch the tasks
+            Task zmqSubscriberTask = Task.Run(() => zmqSubscriber.RunZmqTask(cts.Token));
+
+            Task unwindRollRunTimeAnalyzer = unwindRollRunTimeCollector.UnwindRollRunTimeAnalyzerTask(cts.Token);
+
+            var tasks = new List<Task>
+                {
+                    zmqSubscriberTask,
+                    unwindRollRunTimeAnalyzer
+                };
+
+            // Monitor until all terminate or cancellation requested
+            while (tasks.Count > 0)
+            {
+                Task finishedTask = await Task.WhenAny(tasks);
+                tasks.Remove(finishedTask);
+
+                if (finishedTask == zmqSubscriberTask)
+                {
+                    logger.LogInformation("ZMQ subscriber stopped.");
+                }
+
+                else if (finishedTask == unwindRollRunTimeAnalyzer)
+                {
+                    logger.LogInformation("Unwind roll run time analyzer task stopped.");
+                }
+
+                // Propagate any exceptions
+                await finishedTask;
+            }
         }
         catch (OperationCanceledException) when (cts.IsCancellationRequested)
         {
@@ -64,27 +100,5 @@ class Program
         // DisposeAsync is called automatically by 'await using',
         // which closes all OPC UA sessions on the server.
         logger.LogInformation("Shutdown complete.");
-    }
-
-    private static LineUnwinds LoadLineUnwinds()
-    {
-        var configuration = new ConfigurationBuilder()
-            .SetBasePath(AppContext.BaseDirectory)
-            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
-            .Build();
-
-        return configuration.GetSection("Unwinds").Get<LineUnwinds>()
-            ?? throw new InvalidOperationException("Unwinds section is missing from appsettings.json.");
-    }
-
-    private static ZmqSubscriberData LoadZmqSubscriberData()
-    {
-        var configuration = new ConfigurationBuilder()
-            .SetBasePath(AppContext.BaseDirectory)
-            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
-            .Build();
-
-        return configuration.GetSection("ZmqSubscriberData").Get<ZmqSubscriberData>()
-            ?? throw new InvalidOperationException("ZmqSubscriberData section is missing from appsettings.json.");
     }
 }
