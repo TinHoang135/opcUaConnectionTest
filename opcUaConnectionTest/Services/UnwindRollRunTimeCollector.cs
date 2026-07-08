@@ -154,7 +154,7 @@ namespace unwindRollRuntime.Services
                                 rollRunTime = DateTimeOffset.UtcNow - DL_Unwind.lastSpliceTime.Value;
 
                                 _logger.LogInformation(
-                                    "{Unwind} has spliced. Rroll run time was {Runtime}",
+                                    "{Unwind} has spliced. Roll run time was {Runtime}",
                                     DL_Unwind.Name,
                                     rollRunTime);
                             }
