@@ -21,7 +21,7 @@ class Program
 
         Console.CancelKeyPress += (_, e) =>
         {
-            logger.LogInformation("Shutdown requested (Ctrl+C). Closing OPC UA sessions...");
+            logger.LogInformation("Shutdown requested (Ctrl+C). Closing...");
             e.Cancel = true;
             cts.Cancel();
         };

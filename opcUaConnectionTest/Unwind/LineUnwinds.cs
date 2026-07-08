@@ -14,7 +14,7 @@
         public bool HasSpliced { get; set; } = false;
 
         // Roll parameters
-        public DateTimeOffset? RollStartTime { get; set; } = null;
+        public DateTimeOffset? lastSpliceTime { get; set; } = null;
         public double RollAIsActive { get; set; } = 0;
         public double RollACurrentDiameter { get; set; } = 1000; // mm
         public double RollBCurrentDiameter { get; set; } = 1000; // mm
