@@ -56,7 +56,7 @@ class Program
                 config: zmqSubscriberData,
                 sharedData: sharedDataObject);
 
-            await using var unwindRollRunTimeCollector = new UnwindRollRunTimeCollector(
+            UnwindRollRunTimeCollector unwindRollRunTimeCollector = new (
                 logger: loggerFactory.CreateLogger<UnwindRollRunTimeCollector>(),
                 sharedDataObject: sharedDataObject,
                 lineUnwinds: lineUnwinds);

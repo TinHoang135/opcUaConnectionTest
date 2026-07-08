@@ -5,7 +5,7 @@ using unwindRollRuntime.ZMQ;
 
 namespace unwindRollRuntime.Services
 {
-    public class UnwindRollRunTimeCollector: IAsyncDisposable
+    public class UnwindRollRunTimeCollector
     {
         private readonly ILogger<UnwindRollRunTimeCollector> _logger;
         private readonly SharedDataObject _sharedDataObject;
@@ -22,12 +22,7 @@ namespace unwindRollRuntime.Services
             _lineUnwinds = lineUnwinds;
         }
 
-        public ValueTask DisposeAsync()
-        {
-            throw new NotImplementedException();
-        }
         #endregion Constructors
-
 
         #region Methods
         public async Task UnwindRollRunTimeAnalyzer(CancellationToken cancellationToken = default)

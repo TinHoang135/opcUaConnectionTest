@@ -45,6 +45,10 @@ namespace unwindRollRuntime.ZMQ
                 {
                     RunSubscriber(stoppingToken);
                 }
+                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                {
+                    break;
+                }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "ZMQ subscriber crashed. Retrying in 10 seconds...");
