@@ -18,5 +18,6 @@
         public double RollAIsActive { get; set; } = 0;
         public double RollACurrentDiameter { get; set; } = 1000; // mm
         public double RollBCurrentDiameter { get; set; } = 1000; // mm
+        public double LineDownTimer { get; set; } = 0;
     }
 }

@@ -92,6 +92,10 @@ namespace unwindRollRuntime.Services
 
                 if (_sharedDataObject.ZmqData.ContainsKey(ServiceConstants.zmq_Topic_AQL_Roll_A_Active))
                 {
+                    if (!_sharedDataObject.LineRunning)
+                    {
+                        AQL_Unwind.LineDownTimer += elapsedTimeInSeconds;
+                    }
                     if (AQL_Unwind.RollAIsActive != _sharedDataObject.ZmqData[ServiceConstants.zmq_Topic_AQL_Roll_A_Active])
                     {
                         AQL_Unwind.RollAIsActive = _sharedDataObject.ZmqData[ServiceConstants.zmq_Topic_AQL_Roll_A_Active];
@@ -102,9 +106,10 @@ namespace unwindRollRuntime.Services
                                 rollRunTime = DateTimeOffset.UtcNow - AQL_Unwind.lastSpliceTime.Value;
 
                                 _logger.LogInformation(
-                                    "{Unwind} has spliced. Roll run time was {Runtime}",
+                                    "{Unwind} has spliced. Roll run time was {Runtime}. During this time, line was down for {Downtime} seconds.",
                                     AQL_Unwind.Name,
-                                    rollRunTime);
+                                    rollRunTime,
+                                    AQL_Unwind.LineDownTimer);
                             }
                             else
                             {
@@ -112,12 +117,17 @@ namespace unwindRollRuntime.Services
                                    "{Unwind} has the first splice", AQL_Unwind.Name);
                             }
                             AQL_Unwind.lastSpliceTime = DateTimeOffset.UtcNow;
+                            AQL_Unwind.LineDownTimer = 0;
                         }
                     }
                 }
 
                 if (_sharedDataObject.ZmqData.ContainsKey(ServiceConstants.zmq_Topic_CC_Roll_A_Active))
                 {
+                    if (!_sharedDataObject.LineRunning)
+                    {
+                        CC_Unwind.LineDownTimer += elapsedTimeInSeconds;
+                    }
                     if (CC_Unwind.RollAIsActive != _sharedDataObject.ZmqData[ServiceConstants.zmq_Topic_CC_Roll_A_Active])
                     {
                         CC_Unwind.RollAIsActive = _sharedDataObject.ZmqData[ServiceConstants.zmq_Topic_CC_Roll_A_Active];
@@ -128,9 +138,10 @@ namespace unwindRollRuntime.Services
                                 rollRunTime = DateTimeOffset.UtcNow - CC_Unwind.lastSpliceTime.Value;
 
                                 _logger.LogInformation(
-                                    "{Unwind} has spliced. Roll run time was {Runtime}",
+                                    "{Unwind} has spliced. Roll run time was {Runtime}. During this time, line was down for {Downtime} seconds.",
                                     CC_Unwind.Name,
-                                    rollRunTime);
+                                    rollRunTime,
+                                    CC_Unwind.LineDownTimer);
                             }
                             else
                             {
@@ -138,12 +149,17 @@ namespace unwindRollRuntime.Services
                                    "{Unwind} has the first splice", CC_Unwind.Name);
                             }
                             CC_Unwind.lastSpliceTime = DateTimeOffset.UtcNow;
+                            CC_Unwind.LineDownTimer = 0;
                         }
                     }
                 }
 
                 if (_sharedDataObject.ZmqData.ContainsKey(ServiceConstants.zmq_Topic_DS_Roll_A_Active))
                 {
+                    if (!_sharedDataObject.LineRunning)
+                    {
+                        DL_Unwind.LineDownTimer += elapsedTimeInSeconds;
+                    }
                     if (DL_Unwind.RollAIsActive != _sharedDataObject.ZmqData[ServiceConstants.zmq_Topic_DS_Roll_A_Active])
                     {
                         DL_Unwind.RollAIsActive = _sharedDataObject.ZmqData[ServiceConstants.zmq_Topic_DS_Roll_A_Active];
@@ -154,9 +170,10 @@ namespace unwindRollRuntime.Services
                                 rollRunTime = DateTimeOffset.UtcNow - DL_Unwind.lastSpliceTime.Value;
 
                                 _logger.LogInformation(
-                                    "{Unwind} has spliced. Roll run time was {Runtime}",
+                                    "{Unwind} has spliced. Roll run time was {Runtime}. During this time, line was down for {Downtime} seconds.",
                                     DL_Unwind.Name,
-                                    rollRunTime);
+                                    rollRunTime,
+                                    DL_Unwind.LineDownTimer);
                             }
                             else
                             {
@@ -164,12 +181,17 @@ namespace unwindRollRuntime.Services
                                    "{Unwind} has the first splice", DL_Unwind.Name);
                             }
                             DL_Unwind.lastSpliceTime = DateTimeOffset.UtcNow;
+                            DL_Unwind.LineDownTimer = 0;
                         }
                     }
                 }
 
                 if (_sharedDataObject.ZmqData.ContainsKey(ServiceConstants.zmq_Topic_TS_Roll_A_Active))
                 {
+                    if (!_sharedDataObject.LineRunning)
+                    {
+                        TS_Unwind.LineDownTimer += elapsedTimeInSeconds;
+                    }
                     if (TS_Unwind.RollAIsActive != _sharedDataObject.ZmqData[ServiceConstants.zmq_Topic_TS_Roll_A_Active])
                     {
                         TS_Unwind.RollAIsActive = _sharedDataObject.ZmqData[ServiceConstants.zmq_Topic_TS_Roll_A_Active];
@@ -180,9 +202,10 @@ namespace unwindRollRuntime.Services
                                 rollRunTime = DateTimeOffset.UtcNow - TS_Unwind.lastSpliceTime.Value;
 
                                 _logger.LogInformation(
-                                    "{Unwind} has spliced. Roll run time was {Runtime}",
+                                    "{Unwind} has spliced. Roll run time was {Runtime}. During this time, line was down for {Downtime} seconds.",
                                     TS_Unwind.Name,
-                                    rollRunTime);
+                                    rollRunTime,
+                                    TS_Unwind.LineDownTimer);
                             }
                             else
                             {
@@ -190,12 +213,17 @@ namespace unwindRollRuntime.Services
                                    "{Unwind} has the first splice", TS_Unwind.Name);
                             }
                             TS_Unwind.lastSpliceTime = DateTimeOffset.UtcNow;
+                            TS_Unwind.LineDownTimer = 0;
                         }
                     }
                 }
                     
                 if (_sharedDataObject.ZmqData.ContainsKey(ServiceConstants.zmq_Topic_Cuff_Roll_A_Active))
                 {
+                    if (!_sharedDataObject.LineRunning)
+                    {
+                        Cuff_Unwind.LineDownTimer += elapsedTimeInSeconds;
+                    }
                     if (Cuff_Unwind.RollAIsActive != _sharedDataObject.ZmqData[ServiceConstants.zmq_Topic_Cuff_Roll_A_Active])
                     {
                         Cuff_Unwind.RollAIsActive = _sharedDataObject.ZmqData[ServiceConstants.zmq_Topic_Cuff_Roll_A_Active];
@@ -206,9 +234,10 @@ namespace unwindRollRuntime.Services
                                 rollRunTime = DateTimeOffset.UtcNow - Cuff_Unwind.lastSpliceTime.Value;
 
                                 _logger.LogInformation(
-                                    "{Unwind} has spliced. Roll run time was {Runtime}",
+                                    "{Unwind} has spliced. Roll run time was {Runtime}. During this time, line was down for {Downtime} seconds.",
                                     Cuff_Unwind.Name,
-                                    rollRunTime);
+                                    rollRunTime,
+                                    Cuff_Unwind.LineDownTimer);
                             }
                             else
                             {
@@ -216,12 +245,17 @@ namespace unwindRollRuntime.Services
                                    "{Unwind} has the first splice", Cuff_Unwind.Name);
                             }
                             Cuff_Unwind.lastSpliceTime = DateTimeOffset.UtcNow;
+                            Cuff_Unwind.LineDownTimer = 0;
                         }
                     }
                 }
 
                 if (_sharedDataObject.ZmqData.ContainsKey(ServiceConstants.zmq_Topic_IBU_Roll_A_Active))
                 {
+                    if (!_sharedDataObject.LineRunning)
+                    {
+                        IBU_Unwind.LineDownTimer += elapsedTimeInSeconds;
+                    }
                     if (IBU_Unwind.RollAIsActive != _sharedDataObject.ZmqData[ServiceConstants.zmq_Topic_IBU_Roll_A_Active])
                     {
                         IBU_Unwind.RollAIsActive = _sharedDataObject.ZmqData[ServiceConstants.zmq_Topic_IBU_Roll_A_Active];
@@ -232,21 +266,27 @@ namespace unwindRollRuntime.Services
                                 rollRunTime = DateTimeOffset.UtcNow - IBU_Unwind.lastSpliceTime.Value;
 
                                 _logger.LogInformation(
-                                    "{Unwind} has spliced. Roll run time was {Runtime}",
+                                    "{Unwind} has spliced. Roll run time was {Runtime}. During this time, line was down for {Downtime} seconds.",
                                     IBU_Unwind.Name,
-                                    rollRunTime);
+                                    rollRunTime,
+                                    IBU_Unwind.LineDownTimer);
                             }
                             else
                             {
                                 _logger.LogInformation("{Unwind} has the first splice", IBU_Unwind.Name);
                             }
                             IBU_Unwind.lastSpliceTime = DateTimeOffset.UtcNow;
+                            IBU_Unwind.LineDownTimer = 0;
                         }
                     }
                 }
 
                 if (_sharedDataObject.ZmqData.ContainsKey(ServiceConstants.zmq_Topic_OBU_Roll_A_Active))
                 {
+                    if (!_sharedDataObject.LineRunning)
+                    {
+                        OBU_Unwind.LineDownTimer += elapsedTimeInSeconds;
+                    }
                     if (OBU_Unwind.RollAIsActive != _sharedDataObject.ZmqData[ServiceConstants.zmq_Topic_OBU_Roll_A_Active])
                     {
                         OBU_Unwind.RollAIsActive = _sharedDataObject.ZmqData[ServiceConstants.zmq_Topic_OBU_Roll_A_Active];
@@ -257,9 +297,10 @@ namespace unwindRollRuntime.Services
                                 rollRunTime = DateTimeOffset.UtcNow - OBU_Unwind.lastSpliceTime.Value;
 
                                 _logger.LogInformation(
-                                    "{Unwind} has spliced. Roll run time was {Runtime}",
+                                    "{Unwind} has spliced. Roll run time was {Runtime}. During this time, line was down for {Downtime} seconds.",
                                     OBU_Unwind.Name,
-                                    rollRunTime);
+                                    rollRunTime,
+                                    OBU_Unwind.LineDownTimer);
                             }
                             else
                             {
@@ -267,6 +308,7 @@ namespace unwindRollRuntime.Services
                                    "{Unwind} has the first splice", OBU_Unwind.Name);
                             }
                             OBU_Unwind.lastSpliceTime = DateTimeOffset.UtcNow;
+                            OBU_Unwind.LineDownTimer = 0;
                         }
                     }
                 }
