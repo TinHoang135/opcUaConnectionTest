@@ -79,7 +79,7 @@ namespace unwindRollRuntime.Services
 
                         if ((lineState == lineProducing) || (lineState == lineStartUpReject)
                             || (lineState == lineManualReject) || (lineState == lineThreadingUp)
-                            || (lineState == lineToRun) || (lineState == lineToThread))
+                            || (lineState == lineToRun))
                         {
                             _sharedDataObject.LineRunning = true;
                         }
