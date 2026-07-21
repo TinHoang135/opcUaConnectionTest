@@ -52,7 +52,7 @@ namespace unwindRollRuntime.Services
 
             while (!cancellationToken.IsCancellationRequested)
             {
-                await Task.Delay(elapsedTimeInSeconds * 1000);
+                await Task.Delay(elapsedTimeInSeconds * 1000, cancellationToken);
 
                 productionTimeInSeconds += elapsedTimeInSeconds;
                 if (productionTimeInSeconds % 900 == 0)
