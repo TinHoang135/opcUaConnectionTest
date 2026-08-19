@@ -70,6 +70,12 @@ namespace unwindRollRuntime.Services
                     firstScans = false;
                 else { }
 
+                // check system mode zmq data
+                if (_sharedDataObject.ZmqData.ContainsKey(ServiceConstants.zmq_Topic_Espresso_Auto_Mode))
+                {
+                    _logger.LogInformation($"Value of system mode topic is {_sharedDataObject.ZmqData[ServiceConstants.zmq_Topic_Espresso_Auto_Mode]}");
+                }
+
                 // check line state zmq data
                 if (_sharedDataObject.ZmqData.ContainsKey(ServiceConstants.zmq_Topic_Line_State))
                 {
