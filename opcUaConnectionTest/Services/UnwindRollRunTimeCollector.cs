@@ -80,10 +80,12 @@ namespace unwindRollRuntime.Services
 
                         if (systemInAutoMode > 0.5)
                         {
+                            _logger.LogInformation($"Espresso Automation system mode value: {systemInAutoMode}");
                             _logger.LogInformation("Espresso Automation system switched to Auto Mode");
                         }
                         else
                         {
+                            _logger.LogInformation($"Espresso Automation system mode value: {systemInAutoMode}");
                             _logger.LogInformation("Espresso Automation system switched to Manual Mode");
                         }
                     }
