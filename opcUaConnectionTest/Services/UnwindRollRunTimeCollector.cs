@@ -41,6 +41,7 @@ namespace unwindRollRuntime.Services
             int numberOfScans = 0;
             bool firstScans = true;
             double lineState = 1;
+            double systemInAutoMode = 0.5;
             const double lineProducing = 6;
             const double lineStartUpReject = 5;
             const double lineManualReject = 18;
@@ -73,7 +74,19 @@ namespace unwindRollRuntime.Services
                 // check system mode zmq data
                 if (_sharedDataObject.ZmqData.ContainsKey(ServiceConstants.zmq_Topic_Espresso_Auto_Mode))
                 {
-                    _logger.LogInformation($"Value of system mode topic is {_sharedDataObject.ZmqData[ServiceConstants.zmq_Topic_Espresso_Auto_Mode]}");
+                    if (systemInAutoMode != _sharedDataObject.ZmqData[ServiceConstants.zmq_Topic_Espresso_Auto_Mode])
+                    {
+                        systemInAutoMode = _sharedDataObject.ZmqData[ServiceConstants.zmq_Topic_Espresso_Auto_Mode];
+
+                        if (systemInAutoMode > 0.5)
+                        {
+                            _logger.LogInformation("Espresso Automation system switched to Auto Mode");
+                        }
+                        else
+                        {
+                            _logger.LogInformation("Espresso Automation system switched to Manual Mode");
+                        }
+                    }
                 }
 
                 // check line state zmq data
